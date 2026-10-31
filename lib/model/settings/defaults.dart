@@ -4,6 +4,7 @@ import 'package:aves/model/filters/filters.dart';
 import 'package:aves/model/filters/mime.dart';
 import 'package:aves/model/filters/recent.dart';
 import 'package:aves/model/naming_pattern.dart';
+import 'package:aves/model/settings/enums/miuix_bottom_bar_alignment.dart';
 import 'package:aves/ref/mime_types.dart';
 import 'package:aves/services/media/enums.dart';
 import 'package:aves/widgets/collection/collection_page.dart';
@@ -31,6 +32,8 @@ class SettingsDefaults {
   static const enableDynamicColor = false;
   static const enableBlurEffect = true; // `enableBlurEffect` has a contextual default value
   static const maxBrightness = MaxBrightness.never;
+  // baicha fork: default to the Miuix skin
+  static const useMiuixUi = true;
   static const forceTvLayout = false;
 
   // navigation
@@ -55,6 +58,7 @@ class SettingsDefaults {
     AvesNavItem(route: CollectionPage.routeName, filters: {FavouriteFilter.instance}),
     const AvesNavItem(route: AlbumListPage.routeName),
   ];
+  static const miuixBottomBarAlignment = MiuixBottomBarAlignment.center;
 
   // collection
   static const collectionSortFactor = SortFactor.date;

@@ -23,6 +23,7 @@ import 'package:aves/widgets/common/behaviour/pop/tv_navigation.dart';
 import 'package:aves/widgets/common/extensions/build_context.dart';
 import 'package:aves/widgets/common/identity/aves_fab.dart';
 import 'package:aves/widgets/common/providers/query_provider.dart';
+import 'package:aves/widgets/common/providers/shell_tab_provider.dart';
 import 'package:aves/widgets/common/providers/selection_provider.dart';
 import 'package:aves/widgets/navigation/drawer/app_drawer.dart';
 import 'package:aves/widgets/navigation/nav_bar/nav_bar.dart';
@@ -47,6 +48,7 @@ class const CollectionPage({
 class _CollectionPageState extends State<CollectionPage> {
   final Set<StreamSubscription> _subscriptions = {};
   late CollectionLens _collection;
+  bool _shellCollectionRegistered = false;
   final StreamController<DraggableScrollbarEvent> _draggableScrollBarEventStreamController = StreamController.broadcast();
 
   @override
@@ -75,6 +77,18 @@ class _CollectionPageState extends State<CollectionPage> {
       ..clear();
     _collection.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // baicha fork: when hosted by the main shell, publish this page's collection so
+    // that the shell-level drawer can highlight the current filters
+    final slot = ShellCollectionSlot.maybeOf(context);
+    if (slot != null && !_shellCollectionRegistered) {
+      _shellCollectionRegistered = true;
+      slot.register(_collection);
+    }
   }
 
   @override
@@ -139,6 +153,9 @@ class _CollectionPageState extends State<CollectionPage> {
               builder: (context, enableBottomNavigationBar, child) {
                 final canNavigate = context.select<ValueNotifier<AppMode>, bool>((v) => v.value.canNavigate);
                 final showBottomNavigationBar = canNavigate && enableBottomNavigationBar;
+                // baicha fork: when hosted by the main shell, the bottom bar belongs to
+                // the shell (it must survive tab switches), so the page must not add one
+                final hostedInShell = ShellTabScope.maybeOf(context) != null;
 
                 return NotificationListener<DraggableScrollbarNotification>(
                   onNotification: (notification) {
@@ -148,8 +165,9 @@ class _CollectionPageState extends State<CollectionPage> {
                   child: AvesScaffold(
                     body: body,
                     floatingActionButton: _buildFab(context, isSelecting, selectedItemCount),
-                    drawer: canNavigate ? AppDrawer(currentCollection: _collection) : null,
-                    bottomNavigationBar: showBottomNavigationBar
+                    // the drawer is owned by the shell when hosted (drawn above the bar)
+                    drawer: canNavigate && !hostedInShell ? AppDrawer(currentCollection: _collection) : null,
+                    bottomNavigationBar: showBottomNavigationBar && !hostedInShell
                         ? AppBottomNavBar(
                             events: _draggableScrollBarEventStreamController.stream,
                             currentCollection: _collection,

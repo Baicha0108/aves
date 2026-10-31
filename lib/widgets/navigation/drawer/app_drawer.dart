@@ -32,6 +32,7 @@ import 'package:aves/widgets/navigation/drawer/page_nav_tile.dart';
 import 'package:aves/widgets/navigation/drawer/tile.dart';
 import 'package:aves/widgets/navigation/nav_item.dart';
 import 'package:aves/widgets/settings/settings_page.dart';
+import 'package:aves_miuix/aves_miuix.dart';
 import 'package:aves_model/aves_model.dart';
 import 'package:aves_utils/aves_utils.dart';
 import 'package:collection/collection.dart';
@@ -75,6 +76,9 @@ class const AppDrawer({
 }
 
 class _AppDrawerState extends State<AppDrawer> with WidgetsBindingObserver {
+  /// Radius of the Miuix drawer header buttons (rounded rectangle, not an M3 pill).
+  static const double _headerButtonRadius = 12;
+
   // using the default controller conflicts
   // with bottom nav bar primary scroll monitoring
   final ScrollController _scrollController = ScrollController();
@@ -114,27 +118,66 @@ class _AppDrawerState extends State<AppDrawer> with WidgetsBindingObserver {
     ]);
   }
 
+  /// Upstream (Material) drawer content: keep the exact same widget composition as
+  /// upstream, `Divider`s included.
+  List<Widget> _buildUpstreamItems(BuildContext context) => <Widget>[
+    _buildHeader(context),
+    _buildHomeLink() ?? const SizedBox(),
+    ..._buildTypeLinks(),
+    _buildAlbumLinks(context),
+    ..._buildPageLinks(context),
+    if (settings.enableBin) ...[
+      const Divider(),
+      binTile(context),
+    ],
+    if (!kReleaseMode) ...[
+      const Divider(),
+      debugTile,
+    ],
+  ];
+
+  // baicha fork: Miuix skin → the same navigation items are grouped into rounded
+  // "sections" (cards), which replace the upstream `Divider` separators. Each card sizes
+  // itself to its content, so adding/removing drawer options in the settings resizes it.
+  List<Widget> _buildMiuixItems(BuildContext context) {
+    final homeLink = _buildHomeLink();
+    final typeTiles = _buildTypeTiles();
+    final pageTiles = _buildPageTiles(context);
+    return <Widget>[
+      _buildHeader(context),
+      if (homeLink != null || typeTiles.isNotEmpty)
+        AvesMiuixDrawerSection(
+          // this first card follows the header, which is not a card itself
+          margin: AvesMiuixDrawerSection.leadingMargin,
+          children: [
+            ?homeLink,
+            ...typeTiles,
+          ],
+        ),
+      _buildAlbumTiles(context, (tiles) => AvesMiuixDrawerSection(children: tiles)),
+      if (pageTiles.isNotEmpty) AvesMiuixDrawerSection(children: pageTiles),
+      if (settings.enableBin) AvesMiuixDrawerSection(children: [binTile(context)]),
+      if (!kReleaseMode) AvesMiuixDrawerSection(children: [debugTile]),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
-    final drawerItems = <Widget>[
-      _buildHeader(context),
-      _buildHomeLink(),
-      ..._buildTypeLinks(),
-      _buildAlbumLinks(context),
-      ..._buildPageLinks(context),
-      if (settings.enableBin) ...[
-        const Divider(),
-        binTile(context),
-      ],
-      if (!kReleaseMode) ...[
-        const Divider(),
-        debugTile,
-      ],
-    ];
-
+    // baicha fork: Miuix skin → Miuix surfaces for the drawer, its tiles and selection
+    final miuixTheme = settings.useMiuixUi ? MiuixTheme.of(context) : null;
+    final drawerItems = miuixTheme != null ? _buildMiuixItems(context) : _buildUpstreamItems(context);
     return Drawer(
+      backgroundColor: miuixTheme?.colors.background,
       child: ListTileTheme.merge(
-        selectedColor: Theme.of(context).colorScheme.primary,
+        selectedColor: miuixTheme?.colors.primary ?? Theme.of(context).colorScheme.primary,
+        textColor: miuixTheme?.colors.onBackground,
+        iconColor: miuixTheme?.colors.onBackground,
+        selectedTileColor: miuixTheme?.colors.secondaryContainer,
+        // baicha fork: Miuix-only — the selected tile is a rounded, inset pill: `shape`
+        // rounds the highlight (and the splash) while `contentPadding` keeps the tile
+        // content away from the pill edge.
+        shape: miuixTheme != null ? AvesMiuixDrawerSection.selectionShape : null,
+        contentPadding: miuixTheme != null ? AvesMiuixDrawerSection.itemContentPadding : null,
         horizontalTitleGap: 20,
         visualDensity: VisualDensity.comfortable,
         child: Selector<MediaQueryData, double>(
@@ -178,14 +221,24 @@ class _AppDrawerState extends State<AppDrawer> with WidgetsBindingObserver {
     }
 
     final colorScheme = Theme.of(context).colorScheme;
-    final onPrimary = colorScheme.onPrimary;
+    final miuixColors = settings.useMiuixUi ? MiuixTheme.of(context).colors : null;
+    final onPrimary = miuixColors?.onPrimary ?? colorScheme.onPrimary;
 
     final drawerButtonStyle = ButtonStyle(
       padding: WidgetStateProperty.all(const EdgeInsetsDirectional.only(start: 12, end: 16)),
     );
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      color: colorScheme.primary,
+      color: miuixColors == null ? colorScheme.primary : null,
+      // baicha fork: Miuix-only — the drawer header stays full-bleed (the accent color
+      // still fills the status bar area) but gets rounded bottom corners, matching the
+      // radius of the cards below it.
+      decoration: miuixColors == null
+          ? null
+          : BoxDecoration(
+              color: miuixColors.primary,
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AvesMiuixDrawerSection.defaultCornerRadius)),
+            ),
       child: SafeArea(
         bottom: false,
         child: OutlinedButtonTheme(
@@ -195,6 +248,13 @@ class _AppDrawerState extends State<AppDrawer> with WidgetsBindingObserver {
               overlayColor: WidgetStateProperty.all<Color>(onPrimary.withValues(alpha: .12)),
               iconColor: WidgetStateProperty.all<Color>(onPrimary),
               side: WidgetStateProperty.all<BorderSide>(BorderSide(width: 1, color: onPrimary.withValues(alpha: .24))),
+              // baicha fork: Miuix-only — the header buttons (关于/设置/切换用户) are
+              // rounded rectangles instead of the Material 3 pill (`StadiumBorder`).
+              shape: miuixColors == null
+                  ? null
+                  : WidgetStateProperty.all<OutlinedBorder>(
+                      const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(_headerButtonRadius))),
+                    ),
             ),
           ),
           child: Column(
@@ -214,8 +274,8 @@ class _AppDrawerState extends State<AppDrawer> with WidgetsBindingObserver {
                           text: appName,
                           style: AStyles.appNameStyle(context, appName).copyWith(
                             color: Colors.white,
-                            fontSize: 38,
-                            fontWeight: .w300,
+                            fontSize: miuixColors != null ? 32 : 38,
+                            fontWeight: miuixColors != null ? .w400 : .w300,
                           ),
                         ),
                       ],
@@ -276,7 +336,8 @@ class _AppDrawerState extends State<AppDrawer> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildHomeLink() {
+  /// The customizable home link, if any: `null` when the home page is not a bookmark.
+  Widget? _buildHomeLink() {
     // route name used for display purposes, no actual routing
     const displayRoute = HomePage.routeName;
     const leading = DrawerPageIcon(route: displayRoute);
@@ -304,14 +365,14 @@ class _AppDrawerState extends State<AppDrawer> with WidgetsBindingObserver {
           );
         }
     }
-    return const SizedBox();
+    return null;
   }
 
-  List<Widget> _buildTypeLinks() {
+  List<Widget> _buildTypeTiles() {
     final hiddenFilters = settings.hiddenFilters;
     final typeBookmarks = settings.drawerTypeBookmarks;
     final currentFilters = currentCollection?.filters;
-    final tiles = typeBookmarks
+    return typeBookmarks
         .where((filter) => !hiddenFilters.contains(filter))
         .map(
           (filter) => CollectionNavTile(
@@ -327,13 +388,17 @@ class _AppDrawerState extends State<AppDrawer> with WidgetsBindingObserver {
           ),
         )
         .toList();
+  }
+
+  List<Widget> _buildTypeLinks() {
+    final tiles = _buildTypeTiles();
     return [
       if (tiles.isNotEmpty) const SizedBox(height: 8),
       ...tiles,
     ];
   }
 
-  Widget _buildAlbumLinks(BuildContext context) {
+  Widget _buildAlbumTiles(BuildContext context, Widget Function(List<Widget> tiles) builder) {
     final source = context.read<CollectionSource>();
     final currentFilters = currentCollection?.filters;
     return StreamBuilder<AlbumsChangedEvent>(
@@ -341,64 +406,70 @@ class _AppDrawerState extends State<AppDrawer> with WidgetsBindingObserver {
       builder: (context, _) {
         final albums = AppDrawer.effectiveAlbumBookmarks(context);
         if (albums.isEmpty) return const SizedBox();
-        return Column(
-          children: [
-            const Divider(),
-            ...albums.map(
-              (filter) => AlbumNavTile(
-                filter: filter,
-                isSelected: () {
-                  if (currentFilters == null || currentFilters.length != 1) return false;
-                  return currentFilters.firstOrNull == filter;
-                },
-              ),
-            ),
-          ],
+        return builder(
+          albums
+              .map(
+                (filter) => AlbumNavTile(
+                  filter: filter,
+                  isSelected: () {
+                    if (currentFilters == null || currentFilters.length != 1) return false;
+                    return currentFilters.firstOrNull == filter;
+                  },
+                ),
+              )
+              .toList(),
         );
       },
     );
   }
 
-  List<Widget> _buildPageLinks(BuildContext context) {
+  Widget _buildAlbumLinks(BuildContext context) => _buildAlbumTiles(context, (tiles) => Column(children: [const Divider(), ...tiles]));
+
+  List<Widget> _buildPageTiles(BuildContext context) {
     final pageBookmarks = settings.drawerPageBookmarks;
     if (pageBookmarks.isEmpty) return [];
 
     final source = context.read<CollectionSource>();
     final itemCountFormatter = settings.avesLocale.decimalNumberFormat();
-    return [
-      const Divider(),
-      ...pageBookmarks.map((route) {
-        Widget? trailing;
-        switch (route) {
-          case AlbumListPage.routeName:
-            trailing = StreamBuilder<AlbumsChangedEvent>(
-              stream: source.eventBus.on<AlbumsChangedEvent>(),
-              builder: (context, _) => Text(itemCountFormatter.format(source.rawAlbums.length)),
-            );
-          case CountryListPage.routeName:
-            trailing = StreamBuilder<CountriesChangedEvent>(
-              stream: source.eventBus.on<CountriesChangedEvent>(),
-              builder: (context, _) => Text(itemCountFormatter.format(source.sortedCountries.length)),
-            );
-          case PlaceListPage.routeName:
-            trailing = StreamBuilder<PlacesChangedEvent>(
-              stream: source.eventBus.on<PlacesChangedEvent>(),
-              builder: (context, _) => Text(itemCountFormatter.format(source.sortedPlaces.length)),
-            );
-          case TagListPage.routeName:
-            trailing = StreamBuilder<TagsChangedEvent>(
-              stream: source.eventBus.on<TagsChangedEvent>(),
-              builder: (context, _) => Text(itemCountFormatter.format(source.sortedTags.length)),
-            );
-        }
+    return pageBookmarks.map((route) {
+      Widget? trailing;
+      switch (route) {
+        case AlbumListPage.routeName:
+          trailing = StreamBuilder<AlbumsChangedEvent>(
+            stream: source.eventBus.on<AlbumsChangedEvent>(),
+            builder: (context, _) => Text(itemCountFormatter.format(source.rawAlbums.length)),
+          );
+        case CountryListPage.routeName:
+          trailing = StreamBuilder<CountriesChangedEvent>(
+            stream: source.eventBus.on<CountriesChangedEvent>(),
+            builder: (context, _) => Text(itemCountFormatter.format(source.sortedCountries.length)),
+          );
+        case PlaceListPage.routeName:
+          trailing = StreamBuilder<PlacesChangedEvent>(
+            stream: source.eventBus.on<PlacesChangedEvent>(),
+            builder: (context, _) => Text(itemCountFormatter.format(source.sortedPlaces.length)),
+          );
+        case TagListPage.routeName:
+          trailing = StreamBuilder<TagsChangedEvent>(
+            stream: source.eventBus.on<TagsChangedEvent>(),
+            builder: (context, _) => Text(itemCountFormatter.format(source.sortedTags.length)),
+          );
+      }
 
-        return PageNavTile(
-          // key is expected by test driver
-          key: Key('drawer-page-$route'),
-          trailing: trailing,
-          navItem: AvesNavItem(route: route),
-        );
-      }),
+      return PageNavTile(
+        // key is expected by test driver
+        key: Key('drawer-page-$route'),
+        trailing: trailing,
+        navItem: AvesNavItem(route: route),
+      );
+    }).toList();
+  }
+
+  List<Widget> _buildPageLinks(BuildContext context) {
+    final tiles = _buildPageTiles(context);
+    return [
+      if (tiles.isNotEmpty) const Divider(),
+      ...tiles,
     ];
   }
 

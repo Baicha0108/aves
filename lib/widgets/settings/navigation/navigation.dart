@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:aves/model/filters/filters.dart';
+import 'package:aves/model/settings/enums/miuix_bottom_bar_alignment.dart';
 import 'package:aves/model/settings/settings.dart';
 import 'package:aves/services/common/services.dart';
 import 'package:aves/theme/colors.dart';
@@ -41,6 +42,7 @@ class NavigationSection extends SettingsSection {
     if (!settings.useTvLayout) SettingsTileNavigationDoubleBackExit(),
     SettingsTileNavigationDrawer(),
     if (!settings.useTvLayout) SettingsTileNavigationBottomActions(),
+    if (!settings.useTvLayout && settings.useMiuixUi) SettingsTileNavigationMiuixBottomBarAlignment(),
     if (!settings.useTvLayout) SettingsTileNavigationConfirmationDialog(),
   ]);
 }
@@ -152,6 +154,28 @@ class SettingsTileNavigationBottomActions extends SettingsTile {
     title: title,
     routeName: BottomNavigationActionEditorPage.routeName,
     builder: (context) => const BottomNavigationActionEditorPage(),
+  );
+}
+
+class SettingsTileNavigationMiuixBottomBarAlignment extends SettingsTile {
+  @override
+  List<String> get settingKeys => [SettingKeys.miuixBottomBarAlignmentKey];
+
+  @override
+  String title(BuildContext context) => context.l10n.settingsNavigationMiuixBottomBarAlignmentTile;
+
+  @override
+  Widget build(BuildContext context) => SettingsSelectionListTile<MiuixBottomBarAlignment>(
+    values: MiuixBottomBarAlignment.values,
+    getName: (context, value) => switch (value) {
+      .left => context.l10n.settingsNavigationMiuixBottomBarAlignLeft,
+      .center => context.l10n.settingsNavigationMiuixBottomBarAlignCenter,
+      .right => context.l10n.settingsNavigationMiuixBottomBarAlignRight,
+    },
+    selector: (context, settings) => settings.miuixBottomBarAlignment,
+    onSelection: (value) => settings.miuixBottomBarAlignment = value,
+    tileTitle: title,
+    dialogTitle: title(context),
   );
 }
 

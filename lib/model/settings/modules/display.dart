@@ -1,4 +1,3 @@
-import 'package:aves/model/device.dart';
 import 'package:aves/model/settings/defaults.dart';
 import 'package:aves_model/aves_model.dart';
 
@@ -23,15 +22,24 @@ mixin DisplaySettings on SettingsAccess {
 
   set enableBlurEffect(bool newValue) => set(SettingKeys.enableBlurEffectKey, newValue);
 
+  bool get useMiuixUi => getBool(SettingKeys.useMiuixUiKey) ?? SettingsDefaults.useMiuixUi;
+
+  set useMiuixUi(bool newValue) => set(SettingKeys.useMiuixUiKey, newValue);
+
   MaxBrightness get maxBrightness => getEnumOrDefault(SettingKeys.maxBrightnessKey, SettingsDefaults.maxBrightness, MaxBrightness.values);
 
   set maxBrightness(MaxBrightness newValue) => set(SettingKeys.maxBrightnessKey, newValue.name);
 
-  bool get forceTvLayout => getBool(SettingKeys.forceTvLayoutKey) ?? SettingsDefaults.forceTvLayout;
+  // Aves Miuix intentionally ships the phone/tablet UI only.
+  //
+  // Keep these accessors because the upstream UI contains many `useTvLayout`
+  // branches. Returning constants disables every one of them consistently,
+  // including values restored from an old settings backup.
+  bool get forceTvLayout => false;
 
-  set forceTvLayout(bool newValue) => set(SettingKeys.forceTvLayoutKey, newValue);
+  set forceTvLayout(bool newValue) => set(SettingKeys.forceTvLayoutKey, null);
 
-  bool get useTvLayout => device.isTelevision || forceTvLayout;
+  bool get useTvLayout => false;
 
   bool get isReadOnly => useTvLayout;
 }

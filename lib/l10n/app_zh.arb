@@ -1,6 +1,6 @@
 {
-    "appName": "Aves",
-    "welcomeMessage": "欢迎使用 Aves",
+    "appName": "Aves Miuix",
+    "welcomeMessage": "欢迎使用 Aves Miuix",
     "welcomeOptional": "可选",
     "welcomeTermsToggle": "我同意这些使用条款和条件",
     "itemCount": "{count, plural, other{{count} 项}}",
@@ -484,6 +484,8 @@
     "settingsThemeBrightnessDialogTitle": "主题",
     "settingsThemeColorHighlights": "色彩强调",
     "settingsThemeEnableDynamicColor": "动态色彩",
+
+    "settingsMiuixUiTile": "Miuix 界面（HyperOS 风格）",
     "settingsDisplayRefreshRateModeTile": "显示刷新率",
     "settingsDisplayRefreshRateModeDialogTitle": "刷新率",
     "settingsLanguageSectionTitle": "语言和格式",
@@ -726,6 +728,10 @@
     "mapStyleEditorDialogSubdomains": "子域名",
     "mapStyleEditorDialogUserAgent": "用户代理（UA）",
     "settingsNavigationBottomActionsTile": "底部导航",
+    "settingsNavigationMiuixBottomBarAlignmentTile": "Miuix 底栏位置",
+    "settingsNavigationMiuixBottomBarAlignLeft": "靠左",
+    "settingsNavigationMiuixBottomBarAlignCenter": "居中",
+    "settingsNavigationMiuixBottomBarAlignRight": "靠右",
     "settingsNavigationBottomActionEditorPageTitle": "底部导航",
     "settingsNavigationBottomActionEditorBanner": "长按以移动按钮，并选择在底部导航栏中显示哪些操作。",
     "tagPickPageTitle": "选择标签",

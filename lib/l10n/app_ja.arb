@@ -1,6 +1,6 @@
 {
-    "appName": "Aves",
-    "welcomeMessage": "Avesへようこそ",
+    "appName": "Aves Miuix",
+    "welcomeMessage": "Aves Miuixへようこそ",
     "welcomeOptional": "オプション",
     "welcomeTermsToggle": "利用規約に同意する",
     "itemCount": "{count, plural, other{{count} 件のアイテム}}",

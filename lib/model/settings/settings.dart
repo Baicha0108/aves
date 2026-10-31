@@ -205,6 +205,12 @@ class Settings
   }
 
   Future<void> sanitize() async {
+    // Android TV layout is not supported by this fork. Drop the obsolete forced
+    // layout preference so old installations and settings backups cannot keep
+    // advertising a UI mode that is no longer available.
+    if (store.get(SettingKeys.forceTvLayoutKey) != null) {
+      await store.remove(SettingKeys.forceTvLayoutKey);
+    }
     if (timeToTakeAction == AccessibilityTimeout.system && !await AccessibilityService.hasRecommendedTimeouts()) {
       set(SettingKeys.timeToTakeActionKey, null);
     }
@@ -362,6 +368,7 @@ class Settings
           case SettingKeys.forceWesternArabicNumeralsKey:
           case SettingKeys.enableDynamicColorKey:
           case SettingKeys.enableBlurEffectKey:
+          case SettingKeys.useMiuixUiKey:
           case SettingKeys.mustBackTwiceToExitKey:
           case SettingKeys.confirmCreateVaultKey:
           case SettingKeys.confirmDeleteForeverKey:
@@ -457,6 +464,7 @@ class Settings
           case SettingKeys.screenSaverVideoPlaybackKey:
           case SettingKeys.slideshowTransitionKey:
           case SettingKeys.slideshowVideoPlaybackKey:
+          case SettingKeys.miuixBottomBarAlignmentKey:
             if (newValue is String) {
               store.setString(key, newValue);
             } else {

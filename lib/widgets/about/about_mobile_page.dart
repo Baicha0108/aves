@@ -3,6 +3,7 @@ import 'package:aves/widgets/about/bug_report.dart';
 import 'package:aves/widgets/about/credits.dart';
 import 'package:aves/widgets/about/data_usage.dart';
 import 'package:aves/widgets/about/licenses.dart';
+import 'package:aves/widgets/about/miuix_skin_entry.dart';
 import 'package:aves/widgets/about/translators.dart';
 import 'package:aves/widgets/common/basic/insets.dart';
 import 'package:aves/widgets/common/basic/scaffold.dart';
@@ -28,6 +29,8 @@ class AboutMobilePage extends StatelessWidget {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate(
                     [
+                      const MiuixSkinEntry(),
+                      const Divider(),
                       const AppReference(),
                       const Divider(),
                       const BugReport(),

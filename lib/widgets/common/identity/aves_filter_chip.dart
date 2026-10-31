@@ -19,6 +19,7 @@ import 'package:aves/widgets/common/extensions/build_context.dart';
 import 'package:aves/widgets/common/providers/media_query_data_provider.dart';
 import 'package:aves/widgets/filter_grids/common/action_delegates/chip.dart';
 import 'package:aves_model/aves_model.dart';
+import 'package:aves_miuix/aves_miuix.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
@@ -205,7 +206,10 @@ class _AvesFilterChipState extends State<AvesFilterChip> {
   @override
   Widget build(BuildContext context) {
     final decoration = widget.decoration;
-    final chipBackground = widget.background ?? Themes.firstLayerColor(context);
+    // baicha fork: Miuix skin → Miuix container / outline colours for filter chips
+    final miuixTheme = settings.useMiuixUi ? MiuixTheme.of(context) : null;
+    final neutralColor = context.select<AvesColorsData, Color>((v) => v.neutral);
+    final chipBackground = widget.background ?? miuixTheme?.colors.surfaceContainer ?? Themes.firstLayerColor(context);
 
     final onTap = widget.onTap != null
         ? () {
@@ -357,7 +361,7 @@ class _AvesFilterChipState extends State<AvesFilterChip> {
                     decoration: BoxDecoration(
                       border: Border.fromBorderSide(
                         BorderSide(
-                          color: widget.useFilterColor ? _outlineColor : context.select<AvesColorsData, Color>((v) => v.neutral),
+                          color: widget.useFilterColor ? _outlineColor : (miuixTheme?.colors.outline ?? neutralColor),
                           width: AvesFilterChip.outlineWidth,
                         ),
                       ),

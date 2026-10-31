@@ -6,11 +6,9 @@ import 'package:aves/theme/colors.dart';
 import 'package:aves/theme/icons.dart';
 import 'package:aves/view/view.dart';
 import 'package:aves/widgets/common/extensions/build_context.dart';
-import 'package:aves/widgets/dialogs/aves_confirmation_dialog.dart';
 import 'package:aves/widgets/settings/common/tile_leading.dart';
 import 'package:aves/widgets/settings/common/tiles/single_selection.dart';
 import 'package:aves/widgets/settings/common/tiles/switch_list.dart';
-import 'package:aves/widgets/settings/privacy/privacy.dart';
 import 'package:aves/widgets/settings/settings_definition.dart';
 import 'package:aves_model/aves_model.dart';
 import 'package:material_ui/material_ui.dart';
@@ -33,11 +31,11 @@ class DisplaySection extends SettingsSection {
   Future<List<SettingsTile>> tiles(BuildContext context) => Future.value([
     if (!settings.useTvLayout) SettingsTileDisplayThemeBrightness(),
     SettingsTileDisplayThemeColorMode(),
+    SettingsTileDisplayUiSkin(),
     if (device.isDynamicColorAvailable) SettingsTileDisplayEnableDynamicColor(),
     SettingsTileDisplayEnableBlurEffect(),
     if (!settings.useTvLayout) SettingsTileDisplayMaxBrightness(),
     if (!settings.useTvLayout) SettingsTileDisplayRefreshRateMode(),
-    if (!device.isTelevision) SettingsTileDisplayForceTvLayout(),
   ]);
 }
 
@@ -70,6 +68,21 @@ class SettingsTileDisplayThemeColorMode extends SettingsTile {
   Widget build(BuildContext context) => SettingsSwitchListTile(
     selector: (context, s) => s.themeColorMode == AvesThemeColorMode.polychrome,
     onChanged: (v) => settings.themeColorMode = v ? AvesThemeColorMode.polychrome : AvesThemeColorMode.monochrome,
+    title: title,
+  );
+}
+
+class SettingsTileDisplayUiSkin extends SettingsTile {
+  @override
+  List<String> get settingKeys => [SettingKeys.useMiuixUiKey];
+
+  @override
+  String title(BuildContext context) => context.l10n.settingsMiuixUiTile;
+
+  @override
+  Widget build(BuildContext context) => SettingsSwitchListTile(
+    selector: (context, s) => s.useMiuixUi,
+    onChanged: (v) => settings.useMiuixUi = v,
     title: title,
   );
 }
@@ -136,38 +149,5 @@ class SettingsTileDisplayRefreshRateMode extends SettingsTile {
     onSelection: (v) => settings.displayRefreshRateMode = v,
     tileTitle: title,
     dialogTitle: context.l10n.settingsDisplayRefreshRateModeDialogTitle,
-  );
-}
-
-class SettingsTileDisplayForceTvLayout extends SettingsTile {
-  @override
-  List<String> get settingKeys => [SettingKeys.forceTvLayoutKey];
-
-  @override
-  String title(BuildContext context) => context.l10n.settingsDisplayUseTvInterface;
-
-  @override
-  Widget build(BuildContext context) => SettingsSwitchListTile(
-    selector: (context, s) => s.forceTvLayout,
-    onChanged: (v) async {
-      if (v) {
-        final l10n = context.l10n;
-        if (!await showConfirmationDialog(
-          context: context,
-          message: [
-            l10n.settingsModificationWarningDialogMessage,
-            l10n.genericDangerWarningDialogMessage,
-          ].join('\n\n'),
-          ok: l10n.applyButtonLabel,
-        )) {
-          return;
-        }
-      }
-
-      if (v && !(await SettingsTilePrivacyEnableBin.setBinUsage(context, false))) return;
-
-      settings.forceTvLayout = v;
-    },
-    title: title,
   );
 }

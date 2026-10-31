@@ -4,6 +4,7 @@ import 'package:aves/widgets/common/basic/list_tiles/common.dart';
 import 'package:aves/widgets/common/identity/aves_list_subtitle.dart';
 import 'package:aves/widgets/dialogs/selection_dialogs/common.dart';
 import 'package:aves/widgets/dialogs/selection_dialogs/multi_selection.dart';
+import 'package:aves_miuix/aves_miuix.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -25,6 +26,25 @@ class const SettingsMultiSelectionListTile<T>({
       selector: selector,
       builder: (context, current, child) {
         final subtitle = current.isEmpty ? noneSubtitle : current.map((v) => getName(context, v)).join(AText.separator);
+        // baicha fork: Miuix skin → Miuix arrow preference row
+        if (settings.useMiuixUi) {
+          return MiuixArrowPreference(
+            title: tileTitle(context) ?? AText.valueNotAvailable,
+            summary: subtitle,
+            onClick: () => showSelectionDialog<Set<T>>(
+              context: context,
+              builder: (context) => AvesMultiSelectionDialog<T>(
+                initialValue: current.toSet(),
+                options: Map.fromEntries(values.map((v) => MapEntry(v, getName(context, v)))),
+                optionLeadingBuilder: optionLeadingBuilder,
+                optionSubtitleBuilder: optionSubtitleBuilder,
+                title: dialogTitle,
+              ),
+              onSelection: onSelection,
+            ),
+          );
+        }
+
         return ListTile(
           title: Text(tileTitle(context) ?? AText.valueNotAvailable),
           subtitle: subtitle != null ? AvesListSubtitle(subtitle) : null,

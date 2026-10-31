@@ -55,6 +55,8 @@ class SettingKeys {
   static const enableDynamicColorKey = 'dynamic_color';
   static const enableBlurEffectKey = 'enable_overlay_blur_effect';
   static const maxBrightnessKey = 'max_brightness';
+  // baicha fork: choose between Aves' native Material UI and the Miuix (HyperOS) skin
+  static const useMiuixUiKey = 'use_miuix_ui';
   static const forceTvLayoutKey = 'force_tv_layout';
 
   // navigation
@@ -71,6 +73,7 @@ class SettingKeys {
   static const drawerAlbumBookmarksKey = 'drawer_album_bookmarks';
   static const drawerPageBookmarksKey = 'drawer_page_bookmarks';
   static const bottomNavigationActionsKey = 'bottom_navigation_actions';
+  static const miuixBottomBarAlignmentKey = 'miuix_bottom_bar_alignment';
 
   // collection
   static const collectionBurstPatternsKey = 'collection_burst_patterns';

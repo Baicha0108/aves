@@ -187,6 +187,20 @@ class CollectionLens with ChangeNotifier {
     _onFilterChanged();
   }
 
+  /// Replaces the whole filter set at once.
+  ///
+  /// Used by the Miuix bottom bar to switch between collection tabs **in place**,
+  /// instead of pushing a new `CollectionPage` route: the page and the bottom bar
+  /// keep their state, so switching is a pure in-memory re-filter and the bar's
+  /// indicator can animate continuously.
+  void setFilters(Set<CollectionFilter> newFilters) {
+    if (filters.length == newFilters.length && filters.containsAll(newFilters)) return;
+    filters
+      ..clear()
+      ..addAll(newFilters);
+    _onFilterChanged();
+  }
+
   void removeFilter(CollectionFilter filter) {
     if (!filters.contains(filter)) return;
     filters.remove(filter);

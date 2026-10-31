@@ -1,6 +1,7 @@
 import 'package:aves/model/settings/settings.dart';
 import 'package:aves/theme/themes.dart';
 import 'package:aves/widgets/common/extensions/build_context.dart';
+import 'package:aves_miuix/aves_miuix.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -63,12 +64,23 @@ class _AvesDialogState extends State<AvesDialog> {
   @override
   Widget build(BuildContext context) {
     final title = widget.title;
+    // baicha fork: Miuix skin → Miuix dialog surface, corner radius and title style
+    final miuixTheme = settings.useMiuixUi ? MiuixTheme.of(context) : null;
     return AlertDialog(
+      backgroundColor: miuixTheme?.colors.surfaceContainerHigh,
       title: title != null
           ? Padding(
               // padding to avoid transparent border overlapping
               padding: const EdgeInsets.symmetric(horizontal: AvesDialog.borderWidth),
-              child: DialogTitle(title: title),
+              child: miuixTheme != null
+                  ? DefaultTextStyle(
+                      style: miuixTheme.textStyles.title4.copyWith(
+                        color: miuixTheme.colors.onSurfaceContainer,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      child: DialogTitle(title: title),
+                    )
+                  : DialogTitle(title: title),
             )
           : null,
       titlePadding: EdgeInsets.zero,
@@ -89,7 +101,9 @@ class _AvesDialogState extends State<AvesDialog> {
       buttonPadding: AvesDialog.buttonPadding,
       // clipping to prevent highlighted material to bleed through rounded corners
       clipBehavior: Clip.antiAlias,
-      shape: AvesDialog.shape(context),
+      shape: miuixTheme != null
+          ? const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(28)))
+          : AvesDialog.shape(context),
     );
   }
 

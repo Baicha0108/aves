@@ -35,6 +35,7 @@ import 'package:aves/widgets/filter_grids/albums_page.dart';
 import 'package:aves/widgets/filter_grids/tags_page.dart';
 import 'package:aves/widgets/home/home_error.dart';
 import 'package:aves/widgets/map/map_page.dart';
+import 'package:aves/widgets/navigation/main_shell_page.dart';
 import 'package:aves/widgets/search/collection_search_page_route.dart';
 import 'package:aves/widgets/settings/home_widget_settings_page.dart';
 import 'package:aves/widgets/settings/screen_saver_settings_page.dart';
@@ -329,6 +330,20 @@ class _HomePageState extends State<HomePage> with FeedbackMixin {
   }
 
   Future<Route> _getRedirectRoute(AppMode appMode) async {
+    // baicha fork: under the Miuix skin the normal app entry (no deep link / picker
+    // intent) runs in a persistent pager shell (KSU-style): the bottom bar stays alive
+    // and tabs slide instead of replacing the route stack. HomePage keeps doing all the
+    // setup above (app mode, permissions, media source), only the first route differs.
+    if (settings.useMiuixUi && !settings.useTvLayout && appMode == .main && _initialRouteName == null) {
+      final items = settings.bottomNavigationActions;
+      if (MainShellPage.canHost(items, settings.homeNavItem)) {
+        return DirectMaterialPageRoute(
+          settings: const RouteSettings(name: MainShellPage.routeName),
+          builder: (_) => const MainShellPage(),
+        );
+      }
+    }
+
     String routeName;
     Set<CollectionFilter?>? filters;
     switch (appMode) {

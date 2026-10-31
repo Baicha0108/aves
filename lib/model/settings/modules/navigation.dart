@@ -3,6 +3,7 @@ import 'package:aves/model/filters/container/dynamic_album.dart';
 import 'package:aves/model/filters/filters.dart';
 import 'package:aves/model/grouping/common.dart';
 import 'package:aves/model/settings/defaults.dart';
+import 'package:aves/model/settings/enums/miuix_bottom_bar_alignment.dart';
 import 'package:aves/widgets/collection/collection_page.dart';
 import 'package:aves/widgets/explorer/explorer_page.dart';
 import 'package:aves/widgets/filter_grids/albums_page.dart';
@@ -83,6 +84,14 @@ mixin NavigationSettings on SettingsAccess {
   List<AvesNavItem> get bottomNavigationActions => getStringList(SettingKeys.bottomNavigationActionsKey)?.map(AvesNavItem.fromJson).nonNulls.toList() ?? SettingsDefaults.bottomNavigationActions;
 
   set bottomNavigationActions(List<AvesNavItem>? newValue) => set(SettingKeys.bottomNavigationActionsKey, newValue?.map((v) => v.toJson()).toList());
+
+  MiuixBottomBarAlignment get miuixBottomBarAlignment => getEnumOrDefault(
+    SettingKeys.miuixBottomBarAlignmentKey,
+    SettingsDefaults.miuixBottomBarAlignment,
+    MiuixBottomBarAlignment.values,
+  );
+
+  set miuixBottomBarAlignment(MiuixBottomBarAlignment newValue) => set(SettingKeys.miuixBottomBarAlignmentKey, newValue.name);
 
   bool get enableBottomNavigationBar => bottomNavigationActions.length >= 2;
 

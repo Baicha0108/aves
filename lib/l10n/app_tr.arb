@@ -1,6 +1,6 @@
 {
-    "appName": "Aves",
-    "welcomeMessage": "Aves'e Hoş Geldiniz",
+    "appName": "Aves Miuix",
+    "welcomeMessage": "Aves Miuix'e Hoş Geldiniz",
     "welcomeOptional": "İsteğe bağlı",
     "welcomeTermsToggle": "Hüküm ve koşulları kabul ediyorum",
     "itemCount": "{count, plural, other{{count} öge}}",

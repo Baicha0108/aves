@@ -13,6 +13,9 @@ class const AvesFloatingBar({
   required final EdgeInsets margin,
   required final Widget Function(BuildContext context, Color backgroundColor, Widget? child) builder,
   final Widget? child,
+  // baicha fork: the Miuix skin uses a flat, full-width bar (no border, no rounded corners)
+  final bool? border,
+  final BorderRadius? cornerRadius,
 }) extends StatefulWidget {
   static const borderRadius = BorderRadius.all(Radius.circular(8));
 
@@ -67,21 +70,25 @@ class _AvesFloatingBarState extends State<AvesFloatingBar> with RouteAware {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final backgroundColor = theme.appBarTheme.backgroundColor ?? Themes.firstLayerColor(context);
+    final barBorderRadius = widget.cornerRadius ?? AvesFloatingBar.borderRadius;
+    final showBorder = widget.border ?? true;
     return ValueListenableBuilder<bool>(
       valueListenable: _isBlurAllowedNotifier,
       builder: (context, isBlurAllowed, child) {
         final blurred = isBlurAllowed && context.select<Settings, bool>((v) => v.enableBlurEffect);
         return Container(
-          foregroundDecoration: BoxDecoration(
-            border: Border.all(
-              color: theme.dividerColor,
-            ),
-            borderRadius: AvesFloatingBar.borderRadius,
-          ),
+          foregroundDecoration: showBorder
+              ? BoxDecoration(
+                  border: Border.all(
+                    color: theme.dividerColor,
+                  ),
+                  borderRadius: barBorderRadius,
+                )
+              : null,
           margin: widget.margin,
           child: BlurredRRect(
             enabled: blurred,
-            borderRadius: AvesFloatingBar.borderRadius,
+            borderRadius: barBorderRadius,
             child: widget.builder(
               context,
               blurred ? backgroundColor.withValues(alpha: .85) : backgroundColor,

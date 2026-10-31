@@ -1,6 +1,6 @@
 {
-  "appName": "Aves",
-  "welcomeMessage": "Welcome to Aves",
+  "appName": "Aves Miuix",
+  "welcomeMessage": "Welcome to Aves Miuix",
   "welcomeOptional": "Optional",
   "welcomeTermsToggle": "I agree to the terms and conditions",
   "itemCount": "{count, plural, =1{{count} item} other{{count} items}}",
@@ -909,6 +909,10 @@
   "settingsNavigationDrawerAddAlbum": "Add album",
 
   "settingsNavigationBottomActionsTile": "Bottom navigation",
+  "settingsNavigationMiuixBottomBarAlignmentTile": "Miuix bottom bar position",
+  "settingsNavigationMiuixBottomBarAlignLeft": "Left",
+  "settingsNavigationMiuixBottomBarAlignCenter": "Center",
+  "settingsNavigationMiuixBottomBarAlignRight": "Right",
   "settingsNavigationBottomActionEditorPageTitle": "Bottom Navigation",
   "settingsNavigationBottomActionEditorBanner": "Touch and hold to move buttons and select which actions are displayed in the bottom navigation bar.",
 
@@ -1053,6 +1057,8 @@
   "settingsThemeBrightnessDialogTitle": "Theme",
   "settingsThemeColorHighlights": "Color highlights",
   "settingsThemeEnableDynamicColor": "Dynamic color",
+
+  "settingsMiuixUiTile": "Miuix interface",
   "settingsDisplayRefreshRateModeTile": "Display refresh rate",
   "settingsDisplayRefreshRateModeDialogTitle": "Refresh Rate",
   "settingsDisplayUseTvInterface": "Android TV interface",

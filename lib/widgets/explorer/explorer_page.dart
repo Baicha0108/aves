@@ -16,6 +16,7 @@ import 'package:aves/widgets/collection/loading.dart';
 import 'package:aves/widgets/common/basic/draggable_scrollbar/notifications.dart';
 import 'package:aves/widgets/common/basic/insets.dart';
 import 'package:aves/widgets/common/basic/scaffold.dart';
+import 'package:aves/widgets/common/providers/shell_tab_provider.dart';
 import 'package:aves/widgets/common/behaviour/pop/double_back.dart';
 import 'package:aves/widgets/common/behaviour/pop/scope.dart';
 import 'package:aves/widgets/common/behaviour/pop/tv_navigation.dart';
@@ -129,6 +130,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
           builder: (context, enableBottomNavigationBar, child) {
             final canNavigate = context.select<ValueNotifier<AppMode>, bool>((v) => v.value.canNavigate);
             final showBottomNavigationBar = canNavigate && enableBottomNavigationBar;
+            // baicha fork: inside the main shell both the bar and the drawer belong to the shell
+            final hostedInShell = ShellTabScope.maybeOf(context) != null;
 
             return NotificationListener<DraggableScrollbarNotification>(
               onNotification: (notification) {
@@ -137,8 +140,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
               },
               child: AvesScaffold(
                 body: body,
-                drawer: canNavigate ? AppDrawer(currentExplorerPath: path) : null,
-                bottomNavigationBar: showBottomNavigationBar
+                drawer: canNavigate && !hostedInShell ? AppDrawer(currentExplorerPath: path) : null,
+                bottomNavigationBar: showBottomNavigationBar && !hostedInShell
                     ? AppBottomNavBar(
                         events: _draggableScrollBarEventStreamController.stream,
                       )

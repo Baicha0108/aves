@@ -9,6 +9,7 @@ import 'package:aves/widgets/collection/collection_page.dart';
 import 'package:aves/widgets/common/action_mixins/feedback.dart';
 import 'package:aves/widgets/common/action_mixins/vault_aware.dart';
 import 'package:aves/widgets/common/extensions/build_context.dart';
+import 'package:aves/widgets/common/providers/shell_tab_provider.dart';
 import 'package:aves/widgets/navigation/drawer/tile.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
@@ -60,6 +61,12 @@ class const CollectionNavTile({
     }
 
     Navigator.maybeOf(context)?.pop();
+    // baicha fork: the Miuix shell hosts collection destinations, so switch to its
+    // collection tab and apply the filters in place. `pushAndRemoveUntil` below would
+    // replace the whole route stack and destroy the shell with its persistent bar.
+    final shell = ShellNavigation.current;
+    final shellFilters = _filters == null ? const <CollectionFilter>{} : _filters.whereType<CollectionFilter>().toSet();
+    if (shell != null && shell.goTo(CollectionPage.routeName, filters: shellFilters)) return;
     unawaited(
       Navigator.maybeOf(context)?.pushAndRemoveUntil(
         MaterialPageRoute(

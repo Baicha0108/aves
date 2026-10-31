@@ -7,6 +7,7 @@ import 'package:aves/widgets/common/bars/floating_bar.dart';
 import 'package:aves/widgets/common/basic/font_size_icon_theme.dart';
 import 'package:aves/widgets/common/basic/gestures/ink_well.dart';
 import 'package:aves/widgets/common/basic/insets.dart';
+import 'package:aves_miuix/aves_miuix.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
@@ -25,6 +26,9 @@ class const AvesAppBar({
   static const titleHeroTag = 'appbar-title';
   static const double _titleMinWidth = 96;
   static const margin = EdgeInsets.all(8);
+  // baicha fork: under the Miuix skin the top bar is a floating card with large corners
+  static const miuixBarMargin = EdgeInsets.fromLTRB(12, 8, 12, 8);
+  static const miuixBarRadius = BorderRadius.all(Radius.circular(24));
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +36,16 @@ class const AvesAppBar({
     final colorScheme = theme.colorScheme;
     final textScaler = MediaQuery.textScalerOf(context);
     final useTvLayout = settings.useTvLayout;
+    // baicha fork: under the Miuix skin the top bar becomes a flat, full-width bar with
+    // the page background colour and Miuix's collapsed-title typography (20sp / w500).
+    final useMiuixUi = settings.useMiuixUi;
+    final miuixTheme = useMiuixUi ? MiuixTheme.of(context) : null;
+    final titleTextStyle = miuixTheme != null
+        ? miuixTheme.textStyles.title3.copyWith(
+            color: miuixTheme.colors.onBackground,
+            fontWeight: FontWeight.w500,
+          )
+        : theme.appBarTheme.titleTextStyle!;
 
     Widget? _leading = leading;
     if (_leading != null) {
@@ -87,9 +101,11 @@ class const AvesAppBar({
           child: AnnotatedRegion<SystemUiOverlayStyle>(
             value: AvesApp.themeSystemOverlayStyle(theme),
             child: AvesFloatingBar(
-              margin: margin,
+              margin: useMiuixUi ? miuixBarMargin : margin,
+              cornerRadius: useMiuixUi ? miuixBarRadius : null,
               builder: (context, backgroundColor, child) => Material(
-                color: backgroundColor,
+                // a light container colour makes the floating card read as a card
+                color: miuixTheme?.colors.surfaceContainerHigh ?? backgroundColor,
                 child: AInkResponse(
                   // absorb taps while providing visual feedback
                   onTap: () {},
@@ -120,7 +136,7 @@ class const AvesAppBar({
                               : const SizedBox(width: 16),
                           Expanded(
                             child: DefaultTextStyle(
-                              style: theme.appBarTheme.titleTextStyle!,
+                              style: titleTextStyle,
                               child: _title,
                             ),
                           ),

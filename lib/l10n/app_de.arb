@@ -1,6 +1,6 @@
 {
-    "appName": "Aves",
-    "welcomeMessage": "Willkommen bei Aves",
+    "appName": "Aves Miuix",
+    "welcomeMessage": "Willkommen bei Aves Miuix",
     "welcomeOptional": "Optional",
     "welcomeTermsToggle": "Ich stimme den Bedingungen und Konditionen zu",
     "itemCount": "{count, plural, =1{{count} Element} other{{count} Elemente}}",

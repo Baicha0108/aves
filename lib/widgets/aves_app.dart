@@ -31,6 +31,7 @@ import 'package:aves/widgets/collection/collection_page.dart';
 import 'package:aves/widgets/common/action_mixins/feedback.dart';
 import 'package:aves/widgets/common/basic/derived_material_localization.dart';
 import 'package:aves/widgets/common/basic/scaffold.dart';
+import 'package:aves/widgets/common/behaviour/app_route_observer.dart';
 import 'package:aves/widgets/common/behaviour/pop/scope.dart';
 import 'package:aves/widgets/common/behaviour/route_tracker.dart';
 import 'package:aves/widgets/common/behaviour/routes.dart';
@@ -38,15 +39,20 @@ import 'package:aves/widgets/common/extensions/build_context.dart';
 import 'package:aves/widgets/common/providers/durations_provider.dart';
 import 'package:aves/widgets/common/providers/highlight_info_provider.dart';
 import 'package:aves/widgets/common/providers/media_query_data_provider.dart';
+import 'package:aves/widgets/common/providers/shell_tab_provider.dart';
 import 'package:aves/widgets/common/providers/viewer_entry_provider.dart';
 import 'package:aves/widgets/dialogs/entry_editors/edit_location_dialog.dart';
 import 'package:aves/widgets/home/home_page.dart';
+import 'package:aves/widgets/navigation/main_shell_lifecycle.dart';
+import 'package:aves/widgets/navigation/main_shell_page.dart';
+import 'package:aves/widgets/navigation/nav_item.dart';
 import 'package:aves/widgets/navigation/tv_page_transitions.dart';
 import 'package:aves/widgets/navigation/tv_rail.dart';
 import 'package:aves/widgets/settings/app_export/items.dart';
 import 'package:aves/widgets/settings/language/locales.dart';
 import 'package:aves/widgets/settings/settings_action_delegate.dart';
 import 'package:aves/widgets/welcome_page.dart';
+import 'package:aves_miuix/aves_miuix.dart';
 import 'package:aves_model/aves_model.dart';
 import 'package:aves_utils/aves_utils.dart';
 import 'package:collection/collection.dart';
@@ -100,7 +106,7 @@ class const AvesApp({
 
   // do not monitor all `ModalRoute`s, which would include popup menus,
   // so that we can react to fullscreen `PageRoute`s only
-  static final RouteObserver<PageRoute> pageRouteObserver = RouteObserver<PageRoute>();
+  static final RouteObserver<PageRoute> pageRouteObserver = appRouteObserver;
 
   static ScreenBrightness? get screenBrightness => _AvesAppState._screenBrightness;
 
@@ -255,14 +261,15 @@ class _AvesAppState extends State<AvesApp> with WidgetsBindingObserver {
                   : AvesScaffold(
                       body: snapshot.hasError ? _buildError(snapshot.error!) : const SizedBox(),
                     );
-              return Selector<Settings, (Locale?, AvesThemeBrightness, bool)>(
+              return Selector<Settings, (Locale?, AvesThemeBrightness, bool, bool)>(
                 selector: (context, s) => (
                   s.basicLocale,
                   s.initialized ? s.themeBrightness : SettingsDefaults.themeBrightness,
                   s.initialized ? s.enableDynamicColor : SettingsDefaults.enableDynamicColor,
+                  s.initialized ? s.useMiuixUi : SettingsDefaults.useMiuixUi,
                 ),
                 builder: (context, s, child) {
-                  final (settingsLocale, themeBrightness, enableDynamicColor) = s;
+                  final (settingsLocale, themeBrightness, enableDynamicColor, useMiuixUi) = s;
                   return DynamicColorBuilder(
                     builder: (lightScheme, darkScheme) {
                       const defaultAccent = AvesColorsData.defaultAccent;
@@ -311,10 +318,13 @@ class _AvesAppState extends State<AvesApp> with WidgetsBindingObserver {
                                   );
                                 },
                                 navigatorObservers: _navigatorObservers,
-                                builder: (context, child) => AvesAppContentDecorator(
-                                  initialized: initialized,
-                                  source: _mediaStoreSource,
-                                  child: child,
+                                builder: (context, child) => AvesMiuixTheme(
+                                  enabled: useMiuixUi,
+                                  child: AvesAppContentDecorator(
+                                    initialized: initialized,
+                                    source: _mediaStoreSource,
+                                    child: child,
+                                  ),
                                 ),
                                 onGenerateTitle: (context) => context.l10n.appName,
                                 theme: lightTheme,
@@ -690,6 +700,7 @@ class _AvesAppContentDecoratorState extends State<AvesAppContentDecorator> with 
   final ValueNotifier<PageTransitionsBuilder> _pageTransitionsBuilderNotifier = ValueNotifier(_defaultPageTransitionsBuilder);
   final ValueNotifier<TvMediaQueryModifier?> _tvMediaQueryModifierNotifier = ValueNotifier(null);
   final Set<StreamSubscription> _subscriptions = {};
+  bool _shellReentryInProgress = false;
 
   final EventChannel _platformWindowChangeChannel = const OptionalEventChannel('deckers.thibault/aves/window_change');
 
@@ -702,7 +713,11 @@ class _AvesAppContentDecoratorState extends State<AvesAppContentDecorator> with 
     super.initState();
     _shouldUseBoldFontLoader = AccessibilityService.shouldUseBoldFont();
     source.stateNotifier.addListener(_onSourceStateChanged);
-    _subscriptions.add(settings.updateStream.where((event) => event.key == SettingKeys.forceTvLayoutKey).listen((_) => _applyForceTvLayout()));
+    _subscriptions.add(
+      settings.updateStream.where((event) => event.key == SettingKeys.bottomNavigationActionsKey).listen((_) => _scheduleMainShellReentry()),
+    );
+    MainShellLifecycle.pageContext.addListener(_scheduleMainShellReentry);
+    appRouteObserver.currentRoute.addListener(_scheduleMainShellReentry);
     // register here instead of the top app level,
     // because handling relies on effective page theme
     _subscriptions.add(_platformWindowChangeChannel.receiveBroadcastStream().cast<Map?>().listen(_onWindowChange));
@@ -720,6 +735,8 @@ class _AvesAppContentDecoratorState extends State<AvesAppContentDecorator> with 
 
   @override
   void dispose() {
+    MainShellLifecycle.pageContext.removeListener(_scheduleMainShellReentry);
+    appRouteObserver.currentRoute.removeListener(_scheduleMainShellReentry);
     _subscriptions
       ..forEach((sub) => sub.cancel())
       ..clear();
@@ -777,6 +794,46 @@ class _AvesAppContentDecoratorState extends State<AvesAppContentDecorator> with 
   void _onAppInitialized() {
     _updateSystemUI();
     WidgetsBinding.instance.addPostFrameCallback((_) => _onTvLayoutChanged());
+    _scheduleMainShellReentry();
+  }
+
+  void _scheduleMainShellReentry() {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeReenterMainShell());
+  }
+
+  Future<void> _maybeReenterMainShell() async {
+    if (!mounted || !widget.initialized || _shellReentryInProgress || ShellNavigation.current != null) return;
+    if (!settings.useMiuixUi || settings.useTvLayout || context.read<ValueNotifier<AppMode>>().value != .main) return;
+
+    final navState = _AvesAppState.navigatorKey.currentState;
+    final navRoute = appRouteObserver.currentRoute.value;
+    final page = MainShellLifecycle.currentPage;
+    if (navState == null || navRoute == null || !navRoute.isCurrent || page == null) return;
+
+    final routeName = navRoute.settings.name;
+    if (routeName == null || routeName == MainShellPage.routeName || routeName != page.route) return;
+
+    final items = settings.bottomNavigationActions;
+    if (!MainShellPage.canHost(items, settings.homeNavItem)) return;
+    if (!items.any((item) => item.isHostable && item.route == page.route)) return;
+
+    final item = AvesNavItem(
+      route: page.route,
+      filters: page.filters,
+      path: page.path,
+    );
+    _shellReentryInProgress = true;
+    try {
+      await navState.pushAndRemoveUntil(
+        DirectMaterialPageRoute(
+          settings: const RouteSettings(name: MainShellPage.routeName),
+          builder: (_) => MainShellPage(initialItem: item),
+        ),
+        (_) => false,
+      );
+    } finally {
+      _shellReentryInProgress = false;
+    }
   }
 
   // necessary on older devices
@@ -864,19 +921,6 @@ class _AvesAppContentDecoratorState extends State<AvesAppContentDecorator> with 
         source.stateNotifier.removeListener(_onSourceStateChanged);
       }
     }
-  }
-
-  Future<void> _applyForceTvLayout() async {
-    await _onTvLayoutChanged();
-    unawaited(
-      _AvesAppState.navigatorKey.currentState!.pushAndRemoveUntil(
-        MaterialPageRoute(
-          settings: const RouteSettings(name: HomePage.routeName),
-          builder: (_) => _AvesAppState.getFirstPage(),
-        ),
-        (route) => false,
-      ),
-    );
   }
 
   Future<void> _onTvLayoutChanged() async {

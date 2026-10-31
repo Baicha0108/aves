@@ -78,15 +78,19 @@ class AvesNavItem extends Equatable {
     }
   }
 
-  Route routeBuilder(BuildContext context, {required bool topLevel}) {
+  Route routeBuilder(
+    BuildContext context, {
+    required bool topLevel,
+    CollectionLens? currentCollection,
+  }) {
     switch (route) {
       case HomePage.routeName:
         return settings.homeNavItem.routeBuilder(context, topLevel: topLevel);
       case SearchPage.routeName:
-        final currentCollection = context.read<CollectionLens?>();
+        final collection = currentCollection ?? context.read<CollectionLens?>();
         return CollectionSearchPageRoute(
           context: context,
-          parentCollection: topLevel ? currentCollection?.copyWith() : currentCollection,
+          parentCollection: topLevel ? collection?.copyWith() : collection,
         );
       default:
         return MaterialPageRoute(
@@ -123,6 +127,21 @@ class AvesNavItem extends Equatable {
         throw Exception('unknown route=$route');
     }
   }
+
+  /// Whether this destination can be hosted directly by the main shell
+  /// (see `MainShellPage`). Modal-ish destinations (home alias, search) cannot.
+  bool get isHostable {
+    switch (route) {
+      case HomePage.routeName:
+      case SearchPage.routeName:
+        return false;
+      default:
+        return true;
+    }
+  }
+
+  /// Widget builder used by the main shell to build this destination in a pager.
+  WidgetBuilder get pageBuilder => _materialPageBuilder(route);
 
   // serialization
 
