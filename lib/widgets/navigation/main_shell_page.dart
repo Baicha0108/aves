@@ -240,7 +240,19 @@ class _MainShellPageState extends State<MainShellPage> with RouteAware {
                     _barOffset.value = 0;
                   }
                 },
-                children: _pages!,
+                children: [
+                  for (var index = 0; index < _pages!.length; index++)
+                    HeroMode(
+                      // Keep-alive tabs remain in the route. Only the visible page may
+                      // contribute Hero tags, otherwise AvesAppBar's fixed tags collide
+                      // when another route is pushed above the shell.
+                      enabled: index == _index,
+                      child: ShellTabActiveScope(
+                        active: index == _index,
+                        child: _pages![index],
+                      ),
+                    ),
+                ],
               ),
             ),
           ),

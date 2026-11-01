@@ -2,7 +2,7 @@
 // 回归此前的 bug——回弹中被新的下拉取消后，_startRefreshing 内部锁
 // （_isRefreshingInternally）泄漏为 true，此后所有松手都被提前拦截，
 // 指示器永远停留在拉长状态、不再回弹也不再刷新。
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_miuix/miuix.dart';
 

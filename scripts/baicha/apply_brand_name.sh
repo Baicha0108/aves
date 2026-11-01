@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Re-applies the "Aves Miuix" branding to every Android string resource and ARB file.
-# Idempotent: safe to run after every upstream merge (upstream keeps adding new locales).
+# Idempotent: safe to run after every upstream sync (upstream keeps adding new locales).
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 

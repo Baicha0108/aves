@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
+import 'package:aves/widgets/common/providers/shell_tab_provider.dart';
 
 // this widget combines multiple pop handlers with a guaranteed order
 class const AvesPopScope({
@@ -9,6 +10,12 @@ class const AvesPopScope({
 }) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    // Off-screen shell tabs stay mounted for state preservation, but they must not
+    // register return handlers on the shell's route. Otherwise a hidden selection or
+    // filter group can consume a back event intended for the active tab.
+    if (!ShellTabActiveScope.isActive(context)) {
+      return child;
+    }
     final blocker = handlers.firstWhereOrNull((v) => !v.canPop(context));
     return PopScope(
       canPop: blocker == null,

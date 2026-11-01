@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: audit
 
@@ -28,14 +28,8 @@ jobs:
       - name: Get Flutter packages
         run: ./flutterw pub get
 
-      - name: Generate app localizations
-        run: ./flutterw gen-l10n
-
-      - name: Static analysis.
-        run: ./flutterw analyze
-
-      - name: Unit tests.
-        run: ./flutterw test
+      - name: Static analysis and tests
+        run: bash scripts/baicha/check.sh
 
   analyze_codeql:
     name: CodeQL analysis (${{ matrix.language }})
@@ -55,7 +49,7 @@ jobs:
             build-mode: manual
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: audit
 
@@ -82,9 +76,8 @@ jobs:
         # build in profile mode, instead of release,
         # so that setting up signing environment variables is not required
         run: |
-          scripts/gen_flavor_play.sh
-          scripts/apply_flavor_play.sh
-          ./flutterw build apk --profile -t lib/main_play.dart --flavor play
+          scripts/apply_flavor_libre.sh
+          BAICHA_ABIS=arm64-v8a ./flutterw build apk --profile -t lib/main_libre.dart --flavor libre --target-platform android-arm64
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1

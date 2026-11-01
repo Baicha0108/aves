@@ -2,7 +2,7 @@
 // 回归此前的 bug——拖动时错用 details.delta（每帧增量）叠加到固定起点，
 // 导致 thumb 几乎不动、拖不动只能点击。改用绝对本地坐标后，拖动应能
 // 让值跨越大幅区间。
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_miuix/miuix.dart';
 

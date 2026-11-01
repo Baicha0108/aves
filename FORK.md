@@ -429,26 +429,22 @@ extent 重估：展开「显示」并慢速滑动时，`maxScrollExtent` 会从 
 | `lib/widgets/navigation/drawer/app_drawer.dart` | 抽屉配色 + 头部标题；**Miuix 卡片分组**（`_buildMiuixItems` / `_buildUpstreamItems` 两条组合路径 + `_buildTypeTiles`/`_buildAlbumTiles`/`_buildPageTiles`）、头部下两角圆角、选中态圆角小块（`ListTileTheme` 的 `shape`/`contentPadding`，MD 传 `null`） |
 | `lib/widgets/common/identity/aves_filter_chip.dart` | chip 容器色/描边 |
 | `lib/widgets/dialogs/aves_dialog.dart` | 对话框底色/圆角/标题 |
-| `lib/widgets/about/about_mobile_page.dart` | 插入样张入口 |
+| `lib/widgets/about/about_mobile_page.dart` | Debug 构建插入 Miuix 样张入口，Release 自动隐藏 |
 | `lib/l10n/app_*.arb` + `android/app/src/*/res/values*/strings.xml` | 应用名 `Aves Miuix`（含 welcomeMessage） |
 
 ## 同步上游流程
 
-> ⚠️ **本仓库禁止用 `git rebase` / `git merge` 同步上游。**
-> 这个 clone 的历史被压平过：fork 的 `develop`（`8b9265b7c`）与 `upstream/develop`（`88661560f`）
-> 是**两个互不相关的 root commit**，没有共同祖先（`git merge-base` 返回空）。
-> `git rebase upstream/develop` 会把我们整棵树当成新增内容重放，
-> 结果是**每个文件都 add/add 冲突**。正确做法是把上游改动当 patch 应用（见下）。
+> `develop` 已接回上游完整祖先，当前 fork 历史是“上游提交 + 一个 Baicha 整合提交”。
+> 同步时只能应用 **共同祖先 → `upstream/develop`** 的上游增量。
+> 禁止使用 `git diff develop upstream/develop`：它会同时包含 fork 改动的反向删除。
 
-> 最近同步（2026/10/27）：`upstream/develop` 已前进到 `77ae1fb75`（Aves 1.15.8 /
-> Flutter 3.47.8）。上游增量 319 文件，包含 C2PA 元数据、新版 Android flag 资源和
-> `material_ui` 1.8.0。相冲突的 Miuix 顶栏、设置分区卡片、多选设置行和锁文件已处理；
-> 三套 flavor 锁文件均按 Flutter 3.47.8 重新生成。完整验证与产物记录见
-> `aves-miuix-progress.md` 的「2026/10/27 — 同步上游 `77ae1fb75`」条目。
+> 最近同步（2026/10/31）：`upstream/develop` 为 `b2b27278c`（Aves 1.15.8 /
+> Flutter 3.47.8 / `material_ui` 1.8.0）。历史接回后 fork 在上游之上只有一个
+> 整合提交，远端仍只保留 `develop`。
 
 ```bash
-# 一条命令：拉上游 → 应用上游 diff（--3way）→ 重打品牌名 → 切 flavor → 分析/测试 → 出 arm64 包
-scripts/baicha/sync_upstream.sh
+# 一条命令：拉上游 → 应用上游增量（--3way）→ 重打品牌名 → 切 flavor → 分析/测试 → 出 arm64 包
+bash scripts/baicha/sync_upstream.sh
 ```
 
 手动等价步骤：
@@ -456,40 +452,35 @@ scripts/baicha/sync_upstream.sh
 ```bash
 git fetch upstream develop
 
-# 只取两棵树的差异。注意不要用 `git log develop..upstream/develop`：
-# upstream/develop 是 root commit，range 语法会打印它那 1813 个文件的完整 diff。
-git diff develop upstream/develop          # 先看差异有多大
-git diff develop upstream/develop > /tmp/upstream.patch
-git apply --3way /tmp/upstream.patch       # 3way 会在只被我们改过的那几个文件上自动合并
+# 只取共同祖先之后的上游增量
+BASE="$(git merge-base HEAD upstream/develop)"
+git diff --stat "$BASE" upstream/develop
+git diff --binary "$BASE" upstream/develop > /tmp/upstream.patch
+git apply --3way --binary /tmp/upstream.patch
 
 scripts/baicha/apply_brand_name.sh      # 上游若新增语言，重跑即可
 cp flavors/pubspec_libre.yaml pubspec.yaml
 "$FLUTTER_BIN" pub get                   # 上游若改了依赖，需要重新生成 flavors/*.yaml 与 *.lock
-"$FLUTTER_BIN" test
+bash scripts/baicha/check.sh
 BAICHA_ABIS=arm64-v8a "$FLUTTER_BIN" build apk --release --flavor libre \
   --target-platform android-arm64 -t lib/main_libre.dart
 ```
 
-判断"我们和上游到底差多少"：`git diff --shortstat develop upstream/develop`。
-（实测 2026/10 那次只有 **9 files changed, 154 insertions(+), 159 deletions(-)**。）
+判断待同步的上游增量：`git diff --shortstat "$BASE" upstream/develop`。
 
 判断哪些上游改动会和我们冲突——逐个文件查我们有没有改过：
 
 ```bash
-for f in $(git diff --name-only develop upstream/develop); do
+for f in $(git diff --name-only "$BASE" upstream/develop); do
   git diff --name-only develop HEAD -- "$f" | grep -q . && echo "TOUCHED BY FORK: $f" || echo "untouched:      $f"
 done
 ```
-
-实测那次 9 个文件里**只有 `lib/widgets/navigation/drawer/app_drawer.dart` 被我们改过**，
-而且改动区域不重叠（上游在 import 块和 `binTile`，我们在 `_AppDrawerState.build` 和 `_buildHeader`），
-所以 `--3way` 干净通过、双方改动都保住。
 
 ## 冲突解决速查
 
 | 冲突类型 | 处理 |
 | --- | --- |
-| 整棵树 add/add 冲突（每个文件都冲突） | 说明你用了 `git rebase`/`git merge`。**中止**（`git rebase --abort`），改用上面的 `git diff` + `git apply --3way` |
+| 同步 patch 中出现大量 fork 文件被删除 | `BASE` 或 diff 方向错误；必须从共同祖先开始应用上游增量 |
 | 应用 patch 后 `git apply --3way` 报冲突 | 冲突文件会留在 index 里；把两边都想要的改动手工合好，`git add -A`，再从流程第 3 步继续 |
 | 应用名 / ARB 文案 | 取上游版本，然后重跑 `scripts/baicha/apply_brand_name.sh` |
 | 28 个代码文件 | 保留上游改动，并把我们那个 `if (settings.useMiuixUi) { ... }` 分支重新套上（每个文件的改动都很小、位置固定） |
@@ -499,7 +490,7 @@ done
 
 ## 本机环境备忘
 
-- Flutter 3.47.7：`D:\0AI\BaiCha\Aves\.flutter-sdk\flutter\bin\flutter.bat`（`FLUTTER_BIN` 指向它）
+- Flutter 3.47.8：`D:\0AI\BaiCha\Aves\.flutter-sdk\flutter\bin\flutter.bat`（`FLUTTER_BIN` 指向它）
 - JDK 21：`C:\Program Files\Java\jdk-21`；`ANDROID_HOME=C:\Users\ROG\AppData\Local\Android\Sdk`
 - git 需要 `core.longpaths=true`（否则依赖 checkout 会被截断）
 - release 签名：`D:\0AI\BaiCha\Aves\_keys\aves-baicha.jks`（口令 `aves2026baicha`，别名 `baicha`）→ `android/key.properties`（已加入 `.git/info/exclude`）

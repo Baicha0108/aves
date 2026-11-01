@@ -1,5 +1,5 @@
 // 验证：MiuixFloatingToolbar 内部按钮能正常收到点击（外层 opaque onTap 不吞子按钮）。
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_miuix/miuix.dart';
 

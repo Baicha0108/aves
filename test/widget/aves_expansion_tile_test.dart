@@ -170,12 +170,12 @@ void main() {
             ChangeNotifierProvider<Settings>.value(value: settings),
             Provider<DurationsData>.value(value: DurationsData()),
           ],
-          child: AvesColorsProvider(
+          child: const AvesColorsProvider(
             child: Scaffold(
               body: AvesExpansionTile(
                 title: 'Huffman',
                 locale: KnownLocale.english,
-                children: const [
+                children: [
                   InfoRowGroup(
                     info: {
                       'Code Length': '8',

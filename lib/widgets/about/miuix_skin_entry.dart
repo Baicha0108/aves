@@ -1,6 +1,7 @@
 import 'package:aves/model/settings/settings.dart';
 import 'package:aves/widgets/miuix/miuix_sample_page.dart';
 import 'package:aves_miuix/aves_miuix.dart';
+import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// 关于页里的 Miuix 入口。
@@ -12,7 +13,7 @@ class MiuixSkinEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!settings.useMiuixUi) {
+    if (kReleaseMode || !settings.useMiuixUi) {
       return const SizedBox.shrink();
     }
     return Padding(

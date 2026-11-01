@@ -12,7 +12,6 @@ import 'package:aves/widgets/settings/settings_tv_page.dart';
 import 'package:aves/widgets/settings/thumbnails/thumbnails.dart';
 import 'package:aves/widgets/settings/video/video.dart';
 import 'package:aves/widgets/settings/viewer/viewer.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:material_ui/material_ui.dart';
@@ -67,26 +66,33 @@ class SettingsListView extends StatelessWidget {
         selector: (context, mq) => mq.safeBottomPadding,
         builder: (context, safeBottomPadding, child) {
           final durations = context.watch<DurationsData>();
-          return ListView(
-            // Miuix section cards have very different collapsed/expanded heights.
-            // With a lazily built list, the viewport keeps re-estimating the total
-            // extent as screen-off cards are built, which can shift its scroll
-            // anchor while an expanded section is scrolled past. There are only a
-            // handful of sections, so keep them all laid out for a stable extent.
-            // Material keeps the upstream lazy-list behavior unchanged.
-            scrollCacheExtent: useMiuixUi ? const ScrollCacheExtent.pixels(10000) : null,
-            padding: const EdgeInsets.all(8) + EdgeInsets.only(bottom: safeBottomPadding),
-            children: AnimationConfiguration.toStaggeredList(
-              duration: durations.staggeredAnimation,
-              delay: durations.staggeredAnimationDelay * timeDilation,
-              childAnimationBuilder: (child) => SlideAnimation(
-                verticalOffset: 50.0,
-                child: FadeInAnimation(
-                  child: child,
-                ),
+          final items = AnimationConfiguration.toStaggeredList(
+            duration: durations.staggeredAnimation,
+            delay: durations.staggeredAnimationDelay * timeDilation,
+            childAnimationBuilder: (child) => SlideAnimation(
+              verticalOffset: 50.0,
+              child: FadeInAnimation(
+                child: child,
               ),
-              children: children,
             ),
+            children: children,
+          );
+          final padding = const EdgeInsets.all(8) + EdgeInsets.only(bottom: safeBottomPadding);
+          if (useMiuixUi) {
+            // Miuix cards change height substantially when expanded. A lazy ListView
+            // has to estimate the final extent from only the visible cards, and that
+            // estimate can move the scroll anchor while an expanded card leaves the
+            // viewport. The settings page only has a handful of section cards, so lay
+            // out the complete column for a stable extent. Material keeps the upstream
+            // ListView behavior.
+            return SingleChildScrollView(
+              padding: padding,
+              child: Column(children: items),
+            );
+          }
+          return ListView(
+            padding: padding,
+            children: items,
           );
         },
       ),

@@ -2,7 +2,7 @@
 //
 // 组件级细化测试建议按组件拆分到独立文件（如 bottom_sheet_dismiss_test.dart）。
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_miuix/miuix.dart';
 

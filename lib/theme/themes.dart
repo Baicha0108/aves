@@ -131,7 +131,7 @@ class Themes {
     final miuixColors = _miuixColorsFor(colors);
     return PopupMenuThemeData(
       color: miuixColors?.surfaceContainerHigh ?? _schemeSecondLayer(colors),
-      surfaceTintColor: Colors.transparent,
+      surfaceTintColor: miuixColors != null ? Colors.transparent : null,
       shape: miuixColors != null ? _miuixPopupShape : null,
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         // adapted from M3 defaults
@@ -282,6 +282,7 @@ class Themes {
 
   static ThemeData _baseDarkTheme(ColorScheme colors, bool deviceInitialized, KnownLocale locale) {
     final textTheme = _darkThemeTypo;
+    final miuixColors = _miuixColorsFor(colors);
     return _baseTheme(colors, deviceInitialized).copyWith(
       // TYPOGRAPHY & ICONOGRAPHY
       textTheme: textTheme,
@@ -302,9 +303,9 @@ class Themes {
       listTileTheme: _listTileTheme,
       popupMenuTheme: _popupMenuTheme(colors, textTheme),
       snackBarTheme: _snackBarTheme(colors).copyWith(
-        backgroundColor: _schemeSecondLayer(colors),
+        backgroundColor: miuixColors?.surfaceContainerHigh ?? _schemeSecondLayer(colors),
         contentTextStyle: TextStyle(
-          color: _darkBodyColor,
+          color: miuixColors?.onSurfaceContainer ?? _darkBodyColor,
         ),
       ),
       textButtonTheme: TextButtonThemeData(

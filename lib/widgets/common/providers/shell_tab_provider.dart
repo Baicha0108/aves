@@ -31,6 +31,26 @@ class ShellTabScope extends InheritedWidget {
   bool updateShouldNotify(ShellTabScope oldWidget) => routeName != oldWidget.routeName;
 }
 
+/// Tells a page hosted by the main shell whether it is the visible tab.
+///
+/// Keep-alive pages stay mounted off screen. Route-level mechanisms such as
+/// `Hero` and `PopScope` still inspect those mounted subtrees, so inactive tabs
+/// must opt out explicitly even though their widget state remains alive.
+class ShellTabActiveScope extends InheritedWidget {
+  const new({
+    super.key,
+    required this.active,
+    required super.child,
+  });
+
+  final bool active;
+
+  static bool isActive(BuildContext context) => context.dependOnInheritedWidgetOfExactType<ShellTabActiveScope>()?.active ?? true;
+
+  @override
+  bool updateShouldNotify(ShellTabActiveScope oldWidget) => active != oldWidget.active;
+}
+
 /// Lets a page hosted by the main shell publish its [CollectionLens] to the shell.
 ///
 /// The shell owns the drawer (so that it is drawn above the bottom bar and animates

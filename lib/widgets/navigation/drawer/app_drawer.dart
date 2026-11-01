@@ -273,7 +273,7 @@ class _AppDrawerState extends State<AppDrawer> with WidgetsBindingObserver {
                         TextSpan(
                           text: appName,
                           style: AStyles.appNameStyle(context, appName).copyWith(
-                            color: Colors.white,
+                            color: miuixColors == null ? Colors.white : onPrimary,
                             fontSize: miuixColors != null ? 32 : 38,
                             fontWeight: miuixColors != null ? .w400 : .w300,
                           ),

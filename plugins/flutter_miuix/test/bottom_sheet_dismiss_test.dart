@@ -7,7 +7,7 @@
 //
 // 本测试验证：show 置 false 并动画结束后，弹窗内容被移除，且底层内容可再次点击。
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_miuix/miuix.dart';
 

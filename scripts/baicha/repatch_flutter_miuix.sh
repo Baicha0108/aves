@@ -14,10 +14,19 @@ target="${1:-plugins/flutter_miuix}"
 
 [ -d "$target/lib" ] || { echo "error: $target/lib not found"; exit 1; }
 
-grep -rl -e "package:flutter/material.dart" -e "package:flutter/widgets.dart" "$target/lib" | while read -r f; do
+patch_dirs=("$target/lib" "$target/test")
+[ -d "$target/example/lib" ] && patch_dirs+=("$target/example/lib")
+
+files="$(
+  find "${patch_dirs[@]}" -type f -name '*.dart' -print0 |
+    xargs -0 grep -l -e "package:flutter/material.dart" -e "package:flutter/widgets.dart" || true
+)"
+if [ -n "$files" ]; then
+  printf '%s\n' "$files" | while IFS= read -r f; do
   sed -i -e "s|package:flutter/material\.dart|package:material_ui/material_ui.dart|g" \
          -e "s|package:flutter/widgets\.dart|package:material_ui/material_ui.dart|g" "$f"
-done
+  done
+fi
 
 perl -0pi -e 's{dynamic_color: \^1\.9\.0}{dynamic_color: ^2.1.0}' "$target/pubspec.yaml"
 grep -q 'dynamic_color: \^2.1.0' "$target/pubspec.yaml" || echo "WARN: check the dynamic_color constraint in $target/pubspec.yaml"
@@ -26,7 +35,7 @@ grep -q '^resolution: workspace' "$target/pubspec.yaml" || \
 grep -q '^  material_ui:' "$target/pubspec.yaml" || echo "WARN: add a 'material_ui:' dependency to $target/pubspec.yaml"
 
 # duplicate imports may remain when a file imported both flutter/material and flutter/widgets
-dupes=$(grep -rc "package:material_ui/material_ui.dart" "$target/lib" | awk -F: '$2 > 1 {print $1}' || true)
+dupes=$(grep -rc "package:material_ui/material_ui.dart" "${patch_dirs[@]}" | awk -F: '$2 > 1 {print $1}' || true)
 [ -z "$dupes" ] || echo "NOTE: remove duplicate material_ui imports in:\n$dupes"
 
 echo "flutter_miuix patches re-applied (target: $target)"
