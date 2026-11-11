@@ -1,13 +1,6 @@
 name: Quality check
 
-on:
-  push:
-    branches: [ "develop", "main" ]
-  pull_request:
-    branches: [ "develop", "main" ]
-    types: [ opened, synchronize, reopened ]
-  schedule:
-    - cron: '17 8 * * 3'
+on: workflow_dispatch
 
 # Declare default permissions as read only.
 permissions: read-all
