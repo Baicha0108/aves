@@ -78,3 +78,16 @@ APK 和构建产物不进入 Git。
 - APK：`aves-miuix-1.15.10-arm64-v8a-同步上游更新-18995f4.apk`，82,555,635 字节，SHA-256 `EBF12D3CD9C1B0424347133A7017E0EF470116EFC7F44AE54C2C1A6A306FC48E`。
 - 包名 `io.github.baicha.aves`、`versionName=1.15.10`、`versionCode=184`、仅 `arm64-v8a`，V2 签名验证通过。
 - 本次未推送 GitHub，未向上游提交 PR。
+
+### 2026-11-16 04:27 (Asia/Shanghai) — 迁移为纯单 UI 分支
+
+- 从最新 `upstream/develop` 新建独立 `single-ui` 分支，原 `develop` 保留为回退参考。
+- 将 Aves 原版公共 UI 直接改造成唯一一套 Miuix 界面；设置页、抽屉、顶栏、底栏、卡片、弹窗和筛选控件不再依赖皮肤开关。
+- 删除 `useMiuixUi` 设置键、读取、分支、Material fallback，以及对应双皮肤测试要求。
+- 保留分页壳、标签状态隔离、底栏位置、Android TV 禁用和既有滚动/元数据修复。
+- 验证：`flutter analyze --no-pub` 无问题；主项目 118 项测试、分页壳专项 23 项测试、vendored `flutter_miuix` 69 项测试全部通过。
+- 首次构建发现 Android 启动器名称仍为 `Aves Libre`，已重跑品牌脚本修正为 `Aves Miuix` 并重新构建。
+- 功能提交：`6ad11f99f`；启动器名称修正提交：`99e5e83f0`。
+- APK：`aves-miuix-1.15.10-arm64-v8a-单UI重构-99e5e83f0.apk`，82,555,639 字节，SHA-256 `44001C23FCB83DC34DD91B2E85A63525D93087D4549C00F0AC047EC8DC690BEB`。
+- 包名 `io.github.baicha.aves`、`versionName=1.15.10`、`versionCode=184`、仅 `arm64-v8a`，V2 签名验证通过。
+- 本次未推送 GitHub，未向上游提交 PR。

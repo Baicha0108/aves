@@ -55,8 +55,8 @@
 
 ## 8. 交付
 
-- [ ] 构建 Libre Release arm64 APK。
-- [ ] 核验包名、版本、ABI 和 V2 签名。
-- [ ] 按约定命名并归档 APK。
-- [ ] 更新 `fork.md` 完成记录。
-- [ ] 本地提交，不主动推送 GitHub。
+- [x] 构建 Libre Release arm64 APK。
+- [x] 核验包名、版本、ABI 和 V2 签名。
+- [x] 按约定命名并归档 APK。
+- [x] 更新 `fork.md` 完成记录。
+- [x] 本地提交，不主动推送 GitHub。
