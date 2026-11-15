@@ -1,12 +1,27 @@
 import 'package:aves/theme/styles.dart';
 import 'package:aves/widgets/aves_app.dart';
 import 'package:aves/widgets/settings/language/locales.dart';
+import 'package:aves_miuix/aves_miuix.dart';
 import 'package:aves_utils/aves_utils.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 class Themes {
   static String asButtonLabel(String s) => s.toUpperCase();
+
+  // The Material surfaces that Aves still uses internally (popups, sheets, snack bars
+  // and dialogs) use the Miuix palette of the single product UI.
+  static final Map<String, MiuixColors> _miuixColorsCache = {};
+
+  static MiuixColors _miuixColorsFor(ColorScheme colors) {
+    final key = '${colors.primary.toARGB32()}/${colors.brightness}';
+    return _miuixColorsCache.putIfAbsent(
+      key,
+      () => avesMiuixColors(accent: colors.primary, dark: colors.brightness == Brightness.dark),
+    );
+  }
+
+  static const _miuixPopupShape = RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16)));
 
   static TextStyle searchFieldStyle(BuildContext context) => Theme.of(context).textTheme.bodyLarge!;
 
@@ -61,6 +76,7 @@ class Themes {
       typography: _typography,
       // COMPONENT THEMES
       bottomNavigationBarTheme: _bottomNavigationBarTheme(colors),
+      bottomSheetTheme: _bottomSheetTheme(colors),
       checkboxTheme: _checkboxTheme(colors),
       drawerTheme: _drawerTheme(colors),
       floatingActionButtonTheme: _floatingActionButtonTheme(colors),
@@ -110,17 +126,32 @@ class Themes {
   );
 
   static PopupMenuThemeData _popupMenuTheme(ColorScheme colors, TextTheme textTheme) {
+    final miuixColors = _miuixColorsFor(colors);
     return PopupMenuThemeData(
-      color: _schemeSecondLayer(colors),
+      color: miuixColors.surfaceContainerHigh,
+      surfaceTintColor: Colors.transparent,
+      shape: _miuixPopupShape,
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         // adapted from M3 defaults
         final TextStyle style = textTheme.labelLarge!;
         if (states.contains(WidgetState.disabled)) {
           return style.apply(color: colors.onSurface.withValues(alpha: .38));
         }
-        return style.apply(color: colors.onSurface);
+        return style.apply(color: miuixColors.onSurfaceContainer);
       }),
-      iconColor: colors.onSurface,
+      iconColor: miuixColors.onSurfaceContainer,
+    );
+  }
+
+  static BottomSheetThemeData _bottomSheetTheme(ColorScheme colors) {
+    final miuixColors = _miuixColorsFor(colors);
+    return BottomSheetThemeData(
+      backgroundColor: miuixColors.surfaceContainerHigh,
+      modalBackgroundColor: miuixColors.surfaceContainerHigh,
+      surfaceTintColor: Colors.transparent,
+      showDragHandle: true,
+      dragHandleColor: miuixColors.outline,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
     );
   }
 
@@ -160,10 +191,15 @@ class Themes {
     inactiveTrackColor: colors.primary.withValues(alpha: .24),
   );
 
-  static SnackBarThemeData _snackBarTheme(ColorScheme colors) => SnackBarThemeData(
-    actionTextColor: colors.primary,
-    behavior: SnackBarBehavior.floating,
-  );
+  static SnackBarThemeData _snackBarTheme(ColorScheme colors) {
+    final miuixColors = _miuixColorsFor(colors);
+    return SnackBarThemeData(
+      actionTextColor: miuixColors.primary,
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: miuixColors.surfaceContainerHigh,
+      shape: _miuixPopupShape,
+    );
+  }
 
   static const _tooltipTheme = TooltipThemeData(
     verticalOffset: 32,
@@ -203,7 +239,7 @@ class Themes {
         systemOverlayStyle: deviceInitialized ? AvesApp.systemUIStyleForBrightness(colors.brightness, _schemeFirstLayer(colors)) : const SystemUiOverlayStyle(),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: _schemeSecondLayer(colors),
+        backgroundColor: _miuixColorsFor(colors).surfaceContainerHigh,
         titleTextStyle: AStyles.pageTitleTextStyle(locale).copyWith(color: _lightTitleColor),
       ),
       listTileTheme: _listTileTheme.copyWith(
@@ -223,7 +259,6 @@ class Themes {
 
   static final _darkThemeTypo = _typography.white;
   static final _darkTitleColor = _darkThemeTypo.titleMedium!.color!;
-  static final _darkBodyColor = _darkThemeTypo.bodyMedium!.color!;
   static final _darkLabelColor = _darkThemeTypo.labelMedium!.color!;
   static const _darkOnSurface = Colors.white;
 
@@ -243,6 +278,7 @@ class Themes {
 
   static ThemeData _baseDarkTheme(ColorScheme colors, bool deviceInitialized, KnownLocale locale) {
     final textTheme = _darkThemeTypo;
+    final miuixColors = _miuixColorsFor(colors);
     return _baseTheme(colors, deviceInitialized).copyWith(
       // TYPOGRAPHY & ICONOGRAPHY
       textTheme: textTheme,
@@ -257,15 +293,15 @@ class Themes {
         systemOverlayStyle: deviceInitialized ? AvesApp.systemUIStyleForBrightness(colors.brightness, _schemeFirstLayer(colors)) : const SystemUiOverlayStyle(),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: _schemeSecondLayer(colors),
+        backgroundColor: _miuixColorsFor(colors).surfaceContainerHigh,
         titleTextStyle: AStyles.pageTitleTextStyle(locale).copyWith(color: _darkTitleColor),
       ),
       listTileTheme: _listTileTheme,
       popupMenuTheme: _popupMenuTheme(colors, textTheme),
       snackBarTheme: _snackBarTheme(colors).copyWith(
-        backgroundColor: _schemeSecondLayer(colors),
+        backgroundColor: miuixColors.surfaceContainerHigh,
         contentTextStyle: TextStyle(
-          color: _darkBodyColor,
+          color: miuixColors.onSurfaceContainer,
         ),
       ),
       textButtonTheme: TextButtonThemeData(

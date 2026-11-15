@@ -1,9 +1,9 @@
 import 'package:aves/model/settings/settings.dart';
 import 'package:aves/theme/text.dart';
 import 'package:aves/widgets/common/basic/list_tiles/common.dart';
-import 'package:aves/widgets/common/identity/aves_list_subtitle.dart';
 import 'package:aves/widgets/dialogs/selection_dialogs/common.dart';
 import 'package:aves/widgets/dialogs/selection_dialogs/single_selection.dart';
+import 'package:aves_miuix/aves_miuix.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -23,11 +23,11 @@ class const SettingsSelectionListTile<T>({
     return Selector<Settings, T>(
       selector: selector,
       builder: (context, current, child) {
-        return ListTile(
-          title: Text(tileTitle(context) ?? AText.valueNotAvailable),
-          subtitle: AvesListSubtitle(getName(context, current)),
-          trailing: trailingBuilder?.call(context),
-          onTap: () => showSelectionDialog<T>(
+        return MiuixArrowPreference(
+          title: tileTitle(context) ?? AText.valueNotAvailable,
+          summary: getName(context, current),
+          endActions: trailingBuilder != null ? [trailingBuilder!(context)] : null,
+          onClick: () => showSelectionDialog<T>(
             context: context,
             builder: (context) => AvesSingleSelectionDialog<T>(
               initialValue: current,

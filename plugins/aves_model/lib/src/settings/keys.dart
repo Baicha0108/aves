@@ -71,6 +71,7 @@ class SettingKeys {
   static const drawerAlbumBookmarksKey = 'drawer_album_bookmarks';
   static const drawerPageBookmarksKey = 'drawer_page_bookmarks';
   static const bottomNavigationActionsKey = 'bottom_navigation_actions';
+  static const miuixBottomBarAlignmentKey = 'miuix_bottom_bar_alignment';
 
   // collection
   static const collectionBurstPatternsKey = 'collection_burst_patterns';

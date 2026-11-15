@@ -34,6 +34,7 @@ import 'package:aves/widgets/common/basic/popup/expansion_panel.dart';
 import 'package:aves/widgets/common/basic/popup/menu_row.dart';
 import 'package:aves/widgets/common/basic/text/fading_line.dart';
 import 'package:aves/widgets/common/extensions/build_context.dart';
+import 'package:aves/widgets/common/providers/shell_tab_provider.dart';
 import 'package:aves/widgets/common/identity/buttons/captioned_button.dart';
 import 'package:aves/widgets/common/tile_extent_controller.dart';
 import 'package:aves/widgets/dialogs/aves_dialog.dart';
@@ -306,7 +307,7 @@ class _CollectionAppBarState extends State<CollectionAppBar> with RouteAware, Si
       onPressed = () => context.read<Selection<AvesEntry>>().browse();
       tooltip = MaterialLocalizations.of(context).backButtonTooltip;
     } else {
-      onPressed = Scaffold.of(context).openDrawer;
+      onPressed = ShellScaffoldScope.maybeOf(context)?.openDrawer ?? Scaffold.of(context).openDrawer;
       tooltip = MaterialLocalizations.of(context).openAppDrawerTooltip;
     }
     return IconButton(

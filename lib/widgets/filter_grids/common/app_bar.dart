@@ -22,6 +22,7 @@ import 'package:aves/widgets/common/extensions/build_context.dart';
 import 'package:aves/widgets/common/identity/aves_filter_chip.dart';
 import 'package:aves/widgets/common/identity/buttons/captioned_button.dart';
 import 'package:aves/widgets/common/providers/filter_group_provider.dart';
+import 'package:aves/widgets/common/providers/shell_tab_provider.dart';
 import 'package:aves/widgets/filter_grids/common/action_delegates/chip_set.dart';
 import 'package:aves/widgets/filter_grids/common/group_crumb_line.dart';
 import 'package:aves/widgets/filter_grids/common/query_bar.dart';
@@ -270,7 +271,7 @@ class _FilterGridAppBarState<T extends CollectionFilter, CSAD extends ChipSetAct
       onPressed = () => context.read<Selection<FilterGridItem<T>>>().browse();
       tooltip = MaterialLocalizations.of(context).backButtonTooltip;
     } else {
-      onPressed = Scaffold.of(context).openDrawer;
+      onPressed = ShellScaffoldScope.maybeOf(context)?.openDrawer ?? Scaffold.of(context).openDrawer;
       tooltip = MaterialLocalizations.of(context).openAppDrawerTooltip;
     }
     return IconButton(

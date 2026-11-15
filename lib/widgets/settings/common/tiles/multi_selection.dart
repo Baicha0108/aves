@@ -1,9 +1,9 @@
 import 'package:aves/model/settings/settings.dart';
 import 'package:aves/theme/text.dart';
 import 'package:aves/widgets/common/basic/list_tiles/common.dart';
-import 'package:aves/widgets/common/identity/aves_list_subtitle.dart';
 import 'package:aves/widgets/dialogs/selection_dialogs/common.dart';
 import 'package:aves/widgets/dialogs/selection_dialogs/multi_selection.dart';
+import 'package:aves_miuix/aves_miuix.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -25,10 +25,10 @@ class const SettingsMultiSelectionListTile<T>({
       selector: selector,
       builder: (context, current, child) {
         final subtitle = current.isEmpty ? noneSubtitle : current.map((v) => getName(context, v)).join(AText.separator);
-        return ListTile(
-          title: Text(tileTitle(context) ?? AText.valueNotAvailable),
-          subtitle: subtitle != null ? AvesListSubtitle(subtitle) : null,
-          onTap: () => showSelectionDialog<Set<T>>(
+        return MiuixArrowPreference(
+          title: tileTitle(context) ?? AText.valueNotAvailable,
+          summary: subtitle,
+          onClick: () => showSelectionDialog<Set<T>>(
             context: context,
             builder: (context) => AvesMultiSelectionDialog<T>(
               initialValue: current.toSet(),

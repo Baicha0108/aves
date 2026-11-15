@@ -1,10 +1,10 @@
 {
     "@@locale": "kmr",
-    "appName": "Aves",
+    "appName": "Aves Miuix",
     "settingsLanguageSectionTitle": "Ziman û awa",
     "settingsLanguageTile": "Ziman",
     "settingsLanguagePageTitle": "Ziman",
-    "welcomeMessage": "Tu bi xêr hatî Aves",
+    "welcomeMessage": "Tu bi xêr hatî Aves Miuix",
     "welcomeOptional": "Vebijêrkî",
     "welcomeTermsToggle": "Ez merc û rewşan dipejirînim",
     "itemCount": "{count, plural, =1{{count} hêman} other{{count} hêman}}",

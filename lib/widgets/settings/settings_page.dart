@@ -61,19 +61,23 @@ class const SettingsListView({
         selector: (context, mq) => mq.safeBottomPadding,
         builder: (context, safeBottomPadding, child) {
           final durations = context.watch<DurationsData>();
-          return ListView(
-            padding: const EdgeInsets.all(8) + EdgeInsets.only(bottom: safeBottomPadding),
-            children: AnimationConfiguration.toStaggeredList(
-              duration: durations.staggeredAnimation,
-              delay: durations.staggeredAnimationDelay * timeDilation,
-              childAnimationBuilder: (child) => SlideAnimation(
-                verticalOffset: 50.0,
-                child: FadeInAnimation(
-                  child: child,
-                ),
+          final items = AnimationConfiguration.toStaggeredList(
+            duration: durations.staggeredAnimation,
+            delay: durations.staggeredAnimationDelay * timeDilation,
+            childAnimationBuilder: (child) => SlideAnimation(
+              verticalOffset: 50.0,
+              child: FadeInAnimation(
+                child: child,
               ),
-              children: children,
             ),
+            children: children,
+          );
+          final padding = const EdgeInsets.all(8) + EdgeInsets.only(bottom: safeBottomPadding);
+          // Miuix cards change height substantially when expanded. Laying out the
+          // complete column keeps the scroll extent stable while a card leaves the viewport.
+          return SingleChildScrollView(
+            padding: padding,
+            child: Column(children: items),
           );
         },
       ),

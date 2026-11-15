@@ -4,6 +4,7 @@ import 'package:aves/model/filters/filters.dart';
 import 'package:aves/model/filters/mime.dart';
 import 'package:aves/model/filters/recent.dart';
 import 'package:aves/model/naming_pattern.dart';
+import 'package:aves/model/settings/enums/miuix_bottom_bar_alignment.dart';
 import 'package:aves/ref/mime_types.dart';
 import 'package:aves/services/media/enums.dart';
 import 'package:aves/widgets/collection/collection_page.dart';
@@ -55,6 +56,7 @@ class SettingsDefaults {
     AvesNavItem(route: CollectionPage.routeName, filters: {FavouriteFilter.instance}),
     const AvesNavItem(route: AlbumListPage.routeName),
   ];
+  static const miuixBottomBarAlignment = MiuixBottomBarAlignment.center;
 
   // collection
   static const collectionSortFactor = SortFactor.date;

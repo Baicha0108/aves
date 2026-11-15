@@ -8,7 +8,20 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-val packageName = "deckers.thibault.aves"
+// NOTE (baicha fork): `namespace` / class package stays as upstream, because all Kotlin & Java
+// sources live under `deckers.thibault.aves` and component names (activities, services,
+// providers) are derived from it in the manifest and in `res/xml/app_widget_info.xml`.
+// Only the *application id* (what Android, the launcher, the system search and other apps see)
+// is changed for this fork.
+val classPackage = "deckers.thibault.aves"
+val appId = "io.github.baicha.aves"
+// NOTE (baicha fork): ship a single arm64-v8a APK. For local emulator testing (MuMu is
+// x86_64) the ABI set can be overridden with the `BAICHA_ABIS` environment variable, e.g.
+//   $env:BAICHA_ABIS="x86_64"; flutter build apk --target-platform android-x64
+val forkAbis = (System.getenv("BAICHA_ABIS") ?: "arm64-v8a")
+    .split(",")
+    .map { it.trim() }
+    .filter { it.isNotEmpty() }
 
 // Keys
 
@@ -37,7 +50,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "deckers.thibault.aves"
+    namespace = classPackage
     compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
@@ -60,13 +73,19 @@ android {
     }
 
     defaultConfig {
-        applicationId = packageName
+        applicationId = appId
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         manifestPlaceholders["googleApiKey"] = keystoreProperties["googleApiKey"] ?: "NONE"
         multiDexEnabled = true
+        // NOTE (baicha fork): single arm64-v8a APK for every build type.
+        // Placed in `defaultConfig` so it also applies to debug/profile, where third-party
+        // native libraries (e.g. media_kit / libmpv) would otherwise bring in every ABI.
+        ndk {
+            abiFilters += forkAbis
+        }
     }
 
     // remove dependency metadata from build artifacts
@@ -109,7 +128,6 @@ android {
             // check offending libraries with `fdroidserver`
             // cf https://f-droid.org/en/docs/Submitting_to_F-Droid_Quick_Start_Guide/
             dimension = "store"
-            applicationIdSuffix = ".libre"
         }
     }
 
@@ -137,22 +155,9 @@ android {
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
 
-            // NDK ABI filters are incompatible with split APK generation,
-            // but filters are necessary to exclude x86 native libs from universal APKs
-            // cf https://github.com/flutter/flutter/issues/37566#issuecomment-640879500
-            var useNdkAbiFilters = true
-            if (rootProject.extra.has("split-per-abi")) {
-                val splitPerAbi = rootProject.extra["split-per-abi"]
-                if (splitPerAbi == "true" || splitPerAbi == true) {
-                    useNdkAbiFilters = false
-                }
-            }
-            if (useNdkAbiFilters) {
-                ndk {
-                    //noinspection ChromeOsAbiSupport
-                    abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64")
-                }
-            }
+            // NOTE (baicha fork): ABI filtering is configured once in `defaultConfig`
+            // (arm64-v8a only, one APK per build type), so upstream's per-variant
+            // `abiFilters` / `--split-per-abi` handling is intentionally dropped here.
         }
 
         val abiCodes = mapOf(
@@ -165,7 +170,7 @@ android {
         applicationVariants.all {
             println("Application variant applicationId=$applicationId name=$name")
 
-            resValue("string", "screen_saver_settings_activity", "${applicationId}/${packageName}.ScreenSaverSettingsActivity")
+            resValue("string", "screen_saver_settings_activity", "${applicationId}/${classPackage}.ScreenSaverSettingsActivity")
             resValue("string", "search_provider", "${applicationId}.search_provider")
 
             outputs.forEach { output ->
@@ -182,6 +187,17 @@ android {
 }
 
 androidComponents {
+    onVariants(selector().all()) { variant ->
+        // NOTE (baicha fork): this fork ships a single arm64-v8a APK.
+        // Flutter's Gradle plugin resets `defaultConfig.ndk.abiFilters` to the full platform
+        // list (see FlutterPlugin.configureAbiWithoutSplits), which would pull in
+        // armeabi-v7a / x86_64 native libraries from third-party dependencies
+        // (media_kit's libmpv, libtiff, libimageOps...). Enforce the filter again at
+        // packaging level so the APK really only contains arm64-v8a.
+        val allAbis = listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+        variant.packaging.jniLibs.excludes.addAll(allAbis.filter { it !in forkAbis }.map { "lib/$it/**" })
+    }
+
     onVariants(selector().withFlavor("store", "izzy")) { variant ->
         // uncompressed native libraries are recommended:
         // https://developer.android.com/build/releases/agp-4-2-0-release-notes#compress-native-libs-dsl

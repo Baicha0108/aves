@@ -16,6 +16,7 @@ import 'package:aves/widgets/common/basic/draggable_scrollbar/notifications.dart
 import 'package:aves/widgets/common/basic/draggable_scrollbar/scrollbar.dart';
 import 'package:aves/widgets/common/basic/insets.dart';
 import 'package:aves/widgets/common/basic/scaffold.dart';
+import 'package:aves/widgets/common/providers/shell_tab_provider.dart';
 import 'package:aves/widgets/common/behaviour/pop/double_back.dart';
 import 'package:aves/widgets/common/behaviour/pop/scope.dart';
 import 'package:aves/widgets/common/behaviour/pop/tv_navigation.dart';
@@ -143,6 +144,9 @@ class FilterGridPage<T extends CollectionFilter> extends StatelessWidget {
         builder: (context, enableBottomNavigationBar, child) {
           final canNavigate = context.select<ValueNotifier<AppMode>, bool>((v) => v.value.canNavigate);
           final showBottomNavigationBar = canNavigate && enableBottomNavigationBar;
+          // baicha fork: inside the main shell both the bar and the drawer belong to the
+          // shell (the bar must survive tab switches, the drawer must be drawn above it)
+          final hostedInShell = ShellTabScope.maybeOf(context) != null;
 
           return NotificationListener<DraggableScrollbarNotification>(
             onNotification: (notification) {
@@ -152,8 +156,8 @@ class FilterGridPage<T extends CollectionFilter> extends StatelessWidget {
             child: AvesScaffold(
               body: body,
               floatingActionButton: floatingActionButton,
-              drawer: canNavigate ? const AppDrawer() : null,
-              bottomNavigationBar: showBottomNavigationBar
+              drawer: canNavigate && !hostedInShell ? const AppDrawer() : null,
+              bottomNavigationBar: showBottomNavigationBar && !hostedInShell
                   ? AppBottomNavBar(
                       events: _draggableScrollBarEventStreamController.stream,
                     )

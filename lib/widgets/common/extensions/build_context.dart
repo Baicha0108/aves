@@ -1,12 +1,15 @@
 import 'package:aves/l10n/l10n.dart';
 import 'package:aves/locale/intl.dart';
 import 'package:aves/ref/locale/iso639_1.dart';
+import 'package:aves/widgets/common/providers/shell_tab_provider.dart';
 import 'package:aves/widgets/settings/language/locales.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 extension ExtraBuildContext on BuildContext {
-  String? get currentRouteName => ModalRoute.of(this)?.settings.name;
+  // baicha fork: inside the main shell all tabs share one route, so the shell
+  // advertises the active tab's route name through `ShellTabScope`.
+  String? get currentRouteName => ShellTabScope.maybeOf(this) ?? ModalRoute.of(this)?.settings.name;
 
   bool get isPortrait => MediaQuery.orientationOf(this) == .portrait;
 

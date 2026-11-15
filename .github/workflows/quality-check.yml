@@ -1,13 +1,6 @@
 name: Quality check
 
-on:
-  push:
-    branches: [ "develop", "main" ]
-  pull_request:
-    branches: [ "develop", "main" ]
-    types: [ opened, synchronize, reopened ]
-  schedule:
-    - cron: '17 8 * * 3'
+on: workflow_dispatch
 
 # Declare default permissions as read only.
 permissions: read-all
@@ -28,14 +21,8 @@ jobs:
       - name: Get Flutter packages
         run: ./flutterw pub get
 
-      - name: Generate app localizations
-        run: ./flutterw gen-l10n
-
-      - name: Static analysis.
-        run: ./flutterw analyze
-
-      - name: Unit tests.
-        run: ./flutterw test
+      - name: Static analysis and tests
+        run: bash scripts/baicha/check.sh
 
   analyze_codeql:
     name: CodeQL analysis (${{ matrix.language }})
@@ -82,9 +69,8 @@ jobs:
         # build in profile mode, instead of release,
         # so that setting up signing environment variables is not required
         run: |
-          scripts/gen_flavor_play.sh
-          scripts/apply_flavor_play.sh
-          ./flutterw build apk --profile -t lib/main_play.dart --flavor play
+          scripts/apply_flavor_libre.sh
+          BAICHA_ABIS=arm64-v8a ./flutterw build apk --profile -t lib/main_libre.dart --flavor libre --target-platform android-arm64
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3

@@ -4,6 +4,7 @@ import 'package:aves/model/settings/settings.dart';
 import 'package:aves/theme/durations.dart';
 import 'package:aves/theme/text.dart';
 import 'package:aves/widgets/common/basic/list_tiles/common.dart';
+import 'package:aves_miuix/aves_miuix.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -29,7 +30,6 @@ class _SettingsSwitchListTileState extends State<SettingsSwitchListTile> {
       selector: widget.selector,
       builder: (context, current, child) {
         Widget? leading = widget.leading;
-        Widget titleWidget = Text(widget.title(context) ?? AText.valueNotAvailable);
         final subtitle = widget.subtitle?.call(context);
         final trailing = widget.trailing;
         final onChanged = widget.onChanged;
@@ -42,31 +42,18 @@ class _SettingsSwitchListTileState extends State<SettingsSwitchListTile> {
           );
         }
 
-        if (trailing != null) {
-          titleWidget = Row(
-            children: [
-              Expanded(child: titleWidget),
-              AnimatedOpacity(
-                opacity: current && onChanged != null ? 1 : SettingsSwitchListTile.disabledOpacity,
-                duration: ADurations.toggleableTransitionLoose,
-                child: trailing,
-              ),
-            ],
-          );
-        }
-
-        return SwitchListTile(
+        return MiuixSwitchPreference(
           value: current,
-          onChanged: onChanged != null
-              ? (v) async {
-                  await onChanged(v);
-                  // update in case other props (e.g. subtitle) changed as a consequence
-                  setState(() {});
-                }
-              : null,
-          title: titleWidget,
-          subtitle: subtitle != null ? Text(subtitle) : null,
-          secondary: leading,
+          title: widget.title(context) ?? AText.valueNotAvailable,
+          summary: subtitle,
+          startAction: leading,
+          endActions: trailing != null ? [trailing] : null,
+          enabled: onChanged != null,
+          onChanged: (v) async {
+            await onChanged?.call(v);
+            // update in case other props (e.g. subtitle) changed as a consequence
+            setState(() {});
+          },
         );
       },
     );

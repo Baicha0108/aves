@@ -10,6 +10,11 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
+    # These optional store-only implementations depend on packages absent from the
+    # default Libre workspace. Their flavor-specific files are checked when that
+    # flavor is selected; analyzing them against Libre produces false errors.
+    - plugins/aves_report_crashlytics/**
+    - plugins/aves_services_google/**
 
 #  strong-mode:
 #    implicit-casts: false

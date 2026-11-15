@@ -9,7 +9,6 @@ import 'package:aves/model/settings/enums/accessibility_animations.dart';
 import 'package:aves/model/settings/settings.dart';
 import 'package:aves/theme/colors.dart';
 import 'package:aves/theme/icons.dart';
-import 'package:aves/theme/themes.dart';
 import 'package:aves/view/view.dart';
 import 'package:aves/widgets/collection/filter_bar.dart';
 import 'package:aves/widgets/common/basic/font_size_icon_theme.dart';
@@ -19,6 +18,7 @@ import 'package:aves/widgets/common/extensions/build_context.dart';
 import 'package:aves/widgets/common/providers/media_query_data_provider.dart';
 import 'package:aves/widgets/filter_grids/common/action_delegates/chip.dart';
 import 'package:aves_model/aves_model.dart';
+import 'package:aves_miuix/aves_miuix.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
@@ -205,7 +205,8 @@ class _AvesFilterChipState extends State<AvesFilterChip> {
   @override
   Widget build(BuildContext context) {
     final decoration = widget.decoration;
-    final chipBackground = widget.background ?? Themes.firstLayerColor(context);
+    final miuixTheme = MiuixTheme.of(context);
+    final chipBackground = widget.background ?? miuixTheme.colors.surfaceContainer;
 
     final onTap = widget.onTap != null
         ? () {
@@ -357,7 +358,7 @@ class _AvesFilterChipState extends State<AvesFilterChip> {
                     decoration: BoxDecoration(
                       border: Border.fromBorderSide(
                         BorderSide(
-                          color: widget.useFilterColor ? _outlineColor : context.select<AvesColorsData, Color>((v) => v.neutral),
+                          color: widget.useFilterColor ? _outlineColor : miuixTheme.colors.outline,
                           width: AvesFilterChip.outlineWidth,
                         ),
                       ),

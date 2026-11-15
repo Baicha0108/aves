@@ -205,6 +205,23 @@ class Settings
   }
 
   Future<void> sanitize() async {
+    // Android TV layout is not supported by this fork. Drop the obsolete forced
+    // layout preference so old installations and settings backups cannot keep
+    // advertising a UI mode that is no longer available.
+    if (store.get(SettingKeys.forceTvLayoutKey) == true) {
+      await store.remove(SettingKeys.forceTvLayoutKey);
+      // `applyTvSettings` used to clear the bottom bar and hide viewer overlays.
+      // Restore those two defaults when migrating away from the removed TV mode;
+      // leaving them behind made the phone UI open without navigation or overlays.
+      if (bottomNavigationActions.isEmpty) {
+        await store.remove(SettingKeys.bottomNavigationActionsKey);
+      }
+      if (!showOverlayOnOpening) {
+        await store.remove(SettingKeys.showOverlayOnOpeningKey);
+      }
+    } else if (store.get(SettingKeys.forceTvLayoutKey) != null) {
+      await store.remove(SettingKeys.forceTvLayoutKey);
+    }
     if (timeToTakeAction == AccessibilityTimeout.system && !await AccessibilityService.hasRecommendedTimeouts()) {
       set(SettingKeys.timeToTakeActionKey, null);
     }
@@ -457,6 +474,7 @@ class Settings
           case SettingKeys.screenSaverVideoPlaybackKey:
           case SettingKeys.slideshowTransitionKey:
           case SettingKeys.slideshowVideoPlaybackKey:
+          case SettingKeys.miuixBottomBarAlignmentKey:
             if (newValue is String) {
               store.setString(key, newValue);
             } else {
