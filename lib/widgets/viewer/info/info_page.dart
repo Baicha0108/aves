@@ -11,10 +11,12 @@ import 'package:aves/theme/durations.dart';
 import 'package:aves/widgets/common/basic/insets.dart';
 import 'package:aves/widgets/common/basic/scaffold.dart';
 import 'package:aves/widgets/common/basic/tv_edge_focus.dart';
+import 'package:aves/widgets/common/grid/theme.dart';
 import 'package:aves/widgets/viewer/action/entry_info_action_delegate.dart';
 import 'package:aves/widgets/viewer/controls/notifications.dart';
 import 'package:aves/widgets/viewer/info/basic_section.dart';
 import 'package:aves/widgets/viewer/info/color_section.dart';
+import 'package:aves/widgets/viewer/info/credential/credential_section.dart';
 import 'package:aves/widgets/viewer/info/embedded/embedded_data_opener.dart';
 import 'package:aves/widgets/viewer/info/info_app_bar.dart';
 import 'package:aves/widgets/viewer/info/location_section.dart';
@@ -33,6 +35,8 @@ class const InfoPage({
   required final ValueNotifier<bool> isScrollingNotifier,
   required final ValueNotifier<double> pageInViewNotifier,
 }) extends StatefulWidget {
+  static const double inlineThumbnailExtent = kMinInteractiveDimension;
+
   @override
   State<StatefulWidget> createState() => _InfoPageState();
 }
@@ -41,7 +45,7 @@ class _InfoPageState extends State<InfoPage> {
   final ScrollController _scrollController = ScrollController();
   bool _scrollStartFromTop = false;
 
-  static const splitScreenWidthThreshold = 600;
+  static const double splitScreenWidthThreshold = 600;
 
   @override
   void dispose() {
@@ -68,14 +72,17 @@ class _InfoPageState extends State<InfoPage> {
                   return EmbeddedDataOpener(
                     enabled: !isSelecting,
                     entry: targetEntry,
-                    child: _InfoPageContent(
-                      collection: widget.collection,
-                      entry: targetEntry,
-                      isScrollingNotifier: widget.isScrollingNotifier,
-                      pageInViewNotifier: widget.pageInViewNotifier,
-                      scrollController: _scrollController,
-                      split: MediaQuery.sizeOf(context).width > splitScreenWidthThreshold,
-                      goToViewer: _goToViewer,
+                    child: GridTheme(
+                      extent: InfoPage.inlineThumbnailExtent,
+                      child: _InfoPageContent(
+                        collection: widget.collection,
+                        entry: targetEntry,
+                        isScrollingNotifier: widget.isScrollingNotifier,
+                        pageInViewNotifier: widget.pageInViewNotifier,
+                        scrollController: _scrollController,
+                        split: MediaQuery.sizeOf(context).width > splitScreenWidthThreshold,
+                        goToViewer: _goToViewer,
+                      ),
                     ),
                   );
                 }
@@ -142,12 +149,14 @@ class _InfoPageContentState extends State<_InfoPageContent> {
   final Set<StreamSubscription> _subscriptions = {};
   late EntryInfoActionDelegate _actionDelegate;
   final ValueNotifier<bool> _isBasicSectionVisibleNotifier = ValueNotifier(false);
+  final ValueNotifier<bool> _isCredentialSectionVisibleNotifier = ValueNotifier(false);
   final ValueNotifier<bool> _isMetadataSectionVisibleNotifier = ValueNotifier(false);
   final ValueNotifier<bool> _isColorSectionVisibleNotifier = ValueNotifier(false);
   final ValueNotifier<SplayTreeMap<String, MetadataDirectory>> _metadataNotifier = ValueNotifier(SplayTreeMap());
   final ValueNotifier<EntryAction?> _isEditingMetadataNotifier = ValueNotifier(null);
 
   static const _basicSectionVisibilityRatio = .2;
+  static const _credentialSectionVisibilityRatio = .5;
   static const _metadataSectionVisibilityRatio = .5;
   static const _colorSectionVisibilityRatio = .8;
   static const _horizontalPadding = EdgeInsets.symmetric(horizontal: 8);
@@ -172,6 +181,7 @@ class _InfoPageContentState extends State<_InfoPageContent> {
       _unregisterWidget(oldWidget);
       _registerWidget(widget);
       _isBasicSectionVisibleNotifier.value = false;
+      _isCredentialSectionVisibleNotifier.value = false;
       _isMetadataSectionVisibleNotifier.value = false;
       _isColorSectionVisibleNotifier.value = false;
     }
@@ -180,6 +190,7 @@ class _InfoPageContentState extends State<_InfoPageContent> {
   @override
   void dispose() {
     _isBasicSectionVisibleNotifier.dispose();
+    _isCredentialSectionVisibleNotifier.dispose();
     _isMetadataSectionVisibleNotifier.dispose();
     _isColorSectionVisibleNotifier.dispose();
     _metadataNotifier.dispose();
@@ -204,6 +215,7 @@ class _InfoPageContentState extends State<_InfoPageContent> {
   void _onPageInViewChanged() {
     final inView = widget.pageInViewNotifier.value;
     _isBasicSectionVisibleNotifier.value |= inView > _basicSectionVisibilityRatio;
+    _isCredentialSectionVisibleNotifier.value |= inView > _credentialSectionVisibilityRatio;
     _isMetadataSectionVisibleNotifier.value |= inView > _metadataSectionVisibilityRatio;
     _isColorSectionVisibleNotifier.value |= inView > _colorSectionVisibilityRatio;
   }
@@ -276,6 +288,18 @@ class _InfoPageContentState extends State<_InfoPageContent> {
                   : const SliverToBoxAdapter(child: SizedBox());
             },
           ),
+          if (!settings.useTvLayout && entry.c2paValidity != .unknown)
+            ValueListenableBuilder<bool>(
+              valueListenable: _isCredentialSectionVisibleNotifier,
+              builder: (context, visible, child) {
+                return visible
+                    ? SliverPadding(
+                        padding: _horizontalPadding + const EdgeInsets.only(bottom: 8),
+                        sliver: CredentialSectionSliver(entry: entry),
+                      )
+                    : const SliverToBoxAdapter(child: SizedBox());
+              },
+            ),
           ValueListenableBuilder<bool>(
             valueListenable: _isMetadataSectionVisibleNotifier,
             builder: (context, visible, child) {

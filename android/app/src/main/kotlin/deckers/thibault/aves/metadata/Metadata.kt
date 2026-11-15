@@ -5,7 +5,6 @@ import android.net.Uri
 import android.util.Log
 import deckers.thibault.aves.model.ContentAddress
 import deckers.thibault.aves.storage.StorageUtils
-import deckers.thibault.aves.utils.FileUtils.copyFrom
 import deckers.thibault.aves.utils.LogUtils
 import deckers.thibault.aves.utils.MimeTypes
 import deckers.thibault.aves.utils.TimeZones
@@ -49,6 +48,7 @@ object Metadata {
     const val TYPE_JFIF = "jfif"
     const val TYPE_JPEG_ADOBE = "jpeg_adobe"
     const val TYPE_JPEG_DUCKY = "jpeg_ducky"
+    const val TYPE_JPEG_JUMBF = "jpeg_jumbf"
     const val TYPE_MP4 = "mp4"
     const val TYPE_PHOTOSHOP_IRB = "photoshop_irb"
     const val TYPE_XMP = "xmp"
@@ -196,9 +196,7 @@ object Metadata {
     fun createPreviewFile(context: Context, uri: Uri): File {
         val size = PREVIEW_SIZE
         Log.d(LOG_TAG, "create preview of size=$size for uri=$uri")
-        return StorageUtils.createTempFile(context).apply {
-            copyFrom(StorageUtils.openInputStream(context, uri), size)
-        }
+        return StorageUtils.createTempFile(context, uri, size)
     }
 
     fun openSafeInputStream(context: Context, contentAddress: ContentAddress, sizeBytes: Long?): InputStream? {

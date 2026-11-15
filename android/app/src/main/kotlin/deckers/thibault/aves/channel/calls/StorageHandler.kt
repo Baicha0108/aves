@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import android.os.storage.StorageManager
 import deckers.thibault.aves.channel.calls.Coresult.Companion.safe
+import deckers.thibault.aves.storage.MediaStoreUriHelper
 import deckers.thibault.aves.storage.PermissionManager
 import deckers.thibault.aves.storage.StorageUtils
 import deckers.thibault.aves.utils.FileUtils.getFolderSize
@@ -85,7 +86,7 @@ class StorageHandler(private val context: Context) : MethodCallHandler {
                         }
 
                         val mediaStoreVolumeName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            StorageUtils.getMediaStoreVolumeName(context, volumePath)
+                            MediaStoreUriHelper.getMediaStoreVolumeName(context, volumePath)
                         } else null
 
                         volumes.add(
@@ -169,8 +170,8 @@ class StorageHandler(private val context: Context) : MethodCallHandler {
         val file = File(path)
         try {
             result.success(file.freeSpace)
-        } catch (e: SecurityException) {
-            result.error("getFreeSpace-security", "failed because of missing access", e.message)
+        } catch (ex: SecurityException) {
+            result.error("getFreeSpace-security", "failed because of missing access", ex.message)
         }
     }
 

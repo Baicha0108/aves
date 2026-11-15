@@ -13,15 +13,11 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
-class ViewerDebugPage extends StatelessWidget {
+class const ViewerDebugPage({
+  super.key,
+  required final AvesEntry entry,
+}) extends StatelessWidget {
   static const routeName = '/viewer/debug';
-
-  final AvesEntry entry;
-
-  const new({
-    super.key,
-    required this.entry,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -133,7 +129,7 @@ class ViewerDebugPage extends StatelessWidget {
             'canRotate': '${entry.canRotate}',
             'canFlip': '${entry.canFlip}',
             'tags': '${entry.tags}',
-            'credentialsValidity': '${entry.credentialsValidity}',
+            'c2paValidity': '${entry.c2paValidity}',
           },
         ),
         const Divider(),

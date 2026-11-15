@@ -29,7 +29,7 @@ abstract class StoragePermissionService {
   Future<bool> canRequestMediaStoreBulkAccess();
 
   // returns whether user granted access to URIs
-  Future<bool> requestMediaStoreFileAccess(List<String> uris, List<String> mimeTypes);
+  Future<bool> requestMediaStoreWriteAccess(List<String> uris, List<String> mimeTypes, List<String> paths);
 }
 
 class PlatformStoragePermissionService implements StoragePermissionService {
@@ -157,14 +157,15 @@ class PlatformStoragePermissionService implements StoragePermissionService {
 
   // returns whether user granted access to URIs
   @override
-  Future<bool> requestMediaStoreFileAccess(List<String> uris, List<String> mimeTypes) async {
+  Future<bool> requestMediaStoreWriteAccess(List<String> uris, List<String> mimeTypes, List<String> paths) async {
     try {
       final opCompleter = Completer<bool>();
       _stream
           .receiveBroadcastStream(<String, Object?>{
-            'op': 'requestMediaStoreFileAccess',
+            'op': 'requestMediaStoreWriteAccess',
             'uris': uris,
             'mimeTypes': mimeTypes,
+            'paths': paths,
           })
           .listen(
             (data) => opCompleter.complete(data as bool),
@@ -179,10 +180,10 @@ class PlatformStoragePermissionService implements StoragePermissionService {
     } on PlatformException catch (e) {
       final code = e.code;
       final customException = CustomPlatformException.fromStandard(e);
-      if (code == 'requestMediaStoreFileAccess-large') {
+      if (code == 'requestMediaStoreWriteAccess-large') {
         throw TooManyItemsException();
-      } else if (code == 'requestMediaStoreFileAccess-sendintent') {
-        await mediaStoreFileAccessSendIntent(customException);
+      } else if (code == 'requestMediaStoreWriteAccess-sendintent') {
+        debugPrint('Unreported `sendIntent` error with exception=$e');
       } else {
         final message = e.message;
         // mute issue in the specific case when an item:
@@ -199,11 +200,6 @@ class PlatformStoragePermissionService implements StoragePermissionService {
 
   // distinct exceptions to convince Crashlytics to split reports into distinct issues
   // The distinct debug statement is there to make the body unique, so that the methods are not merged at compile time.
-
-  Future<void> mediaStoreFileAccessSendIntent(CustomPlatformException e) {
-    debugPrint('mediaStoreFileAccessSendIntent $e');
-    return reportService.recordError(e);
-  }
 
   Future<void> mediaStoreFileAccessDenied(CustomPlatformException e) {
     debugPrint('mediaStoreFileAccessDenied $e');

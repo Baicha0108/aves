@@ -6,11 +6,32 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Collection: format overlay option
+
+### Fixed
+
+- large padding due to incorrect system gesture insets
+
+## <a id="v1.15.10"></a>[v1.15.10] - 2026-11-10
+
+### Added
+
+- Info: credential section
+
+### Fixed
+
+- crash when moving many items
+
+## <a id="v1.15.9"></a>[v1.15.9] - 2026-11-05
+
+### Added
+
 - Collection: C2PA content credentials validity overlay icons
 - Collection: sort randomly
 - Collection: long press and release on tag quick action to add multiple tags
 - Cataloguing: detect/filter C2PA content credentials validity
 - Info: show C2PA content credentials
+- Info: remove JUMBF (C2PA) metadata from JPEG
 - Countries: show states for Canada (provinces and territories)
 - States: flag icons
 - Export: conversion of mixed aspect ratios with a single target dimension

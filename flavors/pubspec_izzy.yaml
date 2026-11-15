@@ -8,7 +8,7 @@ publish_to: none
 # - edit GitHub changelog:     /CHANGELOG.md
 # - edit Play Store changelog: /whatsnew/whatsnew-en-US
 # - run `scripts/apply_version_bump.sh`
-version: 1.15.8+182
+version: 1.15.10+184
 
 environment:
   # this project bundles Flutter SDK via `flutter_wrapper`
@@ -229,10 +229,10 @@ flutter:
 #  adapts from Flutter v3.41.9 `SnackBar` in `/material/snack_bar.dart`
 #
 #  `AGestureDetector` in `/widgets/common/basic/gestures/gesture_detector.dart`
-#  adapts from Flutter v3.41.9 `GestureDetector` in `/widgets/gesture_detector.dart`
+#  adapts from Flutter v3.47.8 `GestureDetector` in `/widgets/gesture_detector.dart`
 #
 #  `AInkResponse` in `/widgets/common/basic/gestures/ink_well.dart`
-#  adapts from Flutter v3.41.9 `InkResponse` and related classes in `/material/ink_well.dart`
+#  adapts from Flutter v3.47.8 `InkResponse` and related classes in `/material/ink_well.dart`
 #
 #  `EagerScaleGestureRecognizer` in `/widgets/common/behaviour/eager_scale_gesture_recognizer.dart`
 #  adapts from Flutter v3.41.9 `ScaleGestureRecognizer` in `/gestures/scale.dart`

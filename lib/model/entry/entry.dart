@@ -57,6 +57,10 @@ class AvesEntry with AvesEntryBase {
 
   final AChangeNotifier metadataChangeNotifier = .new(), addressChangeNotifier = .new();
 
+  bool _disposed = false;
+
+  bool get isDisposed => _disposed;
+
   new({
     required int? id,
     required this.uri,
@@ -95,10 +99,16 @@ class AvesEntry with AvesEntryBase {
     String? uri,
     String? path,
     int? contentId,
+    int? pageId,
     String? sourceMimeType,
+    int? width,
+    int? height,
+    int? sourceRotationDegrees,
     String? sourceTitle,
     int? dateAddedSecs,
     int? dateModifiedMillis,
+    int? durationMillis,
+    bool? trashed,
     int? origin,
     List<AvesEntry>? stackedEntries,
   }) {
@@ -109,18 +119,18 @@ class AvesEntry with AvesEntryBase {
             uri: uri ?? this.uri,
             path: path ?? this.path,
             contentId: contentId ?? this.contentId,
-            pageId: null,
+            pageId: pageId ?? this.pageId,
             sourceMimeType: sourceMimeType ?? this.sourceMimeType,
-            width: width,
-            height: height,
-            sourceRotationDegrees: sourceRotationDegrees,
+            width: width ?? this.width,
+            height: height ?? this.height,
+            sourceRotationDegrees: sourceRotationDegrees ?? this.sourceRotationDegrees,
             sizeBytes: sizeBytes,
             sourceTitle: sourceTitle ?? this.sourceTitle,
             dateAddedSecs: dateAddedSecs ?? this.dateAddedSecs,
             dateModifiedMillis: dateModifiedMillis ?? this.dateModifiedMillis,
             sourceDateTakenMillis: sourceDateTakenMillis,
-            durationMillis: durationMillis,
-            trashed: trashed,
+            durationMillis: durationMillis ?? this.durationMillis,
+            trashed: trashed ?? this.trashed,
             origin: origin ?? this.origin,
             stackedEntries: stackedEntries ?? this.stackedEntries,
           )
@@ -129,6 +139,15 @@ class AvesEntry with AvesEntryBase {
           ..trashDetails = trashDetails?.copyWith(id: copyEntryId);
 
     return copied;
+  }
+
+  // for embedded resources
+  static AvesEntry? maybeFromFields(Map fields) {
+    normalizeMimeTypeFields(fields);
+    final mimeType = fields[EntryFields.mimeType] as String?;
+    final uri = fields[EntryFields.uri] as String?;
+    if (mimeType == null || uri == null) return null;
+    return .fromMap(fields);
   }
 
   // from DB or platform source entry
@@ -204,12 +223,15 @@ class AvesEntry with AvesEntryBase {
   }
 
   void dispose() {
+    assert(!isDisposed, 'entry already disposed, $this');
+
     if (kFlutterMemoryAllocationsEnabled) {
       LeakTracking.dispatchObjectDisposed(object: this);
     }
     visualChangeNotifier.dispose();
     metadataChangeNotifier.dispose();
     addressChangeNotifier.dispose();
+    _disposed = true;
   }
 
   // do not implement [Object.==] and [Object.hashCode] using mutable attributes (e.g. `uri`)
@@ -253,7 +275,7 @@ class AvesEntry with AvesEntryBase {
 
   bool get isCatalogued => _catalogMetadata != null;
 
-  C2paValidity get credentialsValidity => _catalogMetadata?.credentialsValidity ?? .unknown;
+  C2paValidity get c2paValidity => _catalogMetadata?.c2paValidity ?? .unknown;
 
   DateTime? _bestDate;
 
@@ -434,11 +456,14 @@ class AvesEntry with AvesEntryBase {
   }
 
   Future<void> applyNewFields(Map newFields, {required bool persist}) async {
+    assert(!isDisposed, 'entry used after being disposed, $this');
+
     final oldMimeType = mimeType;
     final oldDateModifiedMillis = this.dateModifiedMillis;
     final oldRotationDegrees = this.rotationDegrees;
     final oldIsFlipped = this.isFlipped;
 
+    // content address
     final uri = newFields[EntryFields.uri];
     if (uri is String) this.uri = uri;
     final path = newFields[EntryFields.path];
@@ -446,6 +471,7 @@ class AvesEntry with AvesEntryBase {
     final contentId = newFields[EntryFields.contentId];
     if (contentId is int) this.contentId = contentId;
 
+    // source fields
     final sourceTitle = newFields[EntryFields.title];
     if (sourceTitle is String) this.sourceTitle = sourceTitle;
     final sourceRotationDegrees = newFields[EntryFields.sourceRotationDegrees];
@@ -453,6 +479,7 @@ class AvesEntry with AvesEntryBase {
     final sourceDateTakenMillis = newFields[EntryFields.sourceDateTakenMillis];
     if (sourceDateTakenMillis is int) this.sourceDateTakenMillis = sourceDateTakenMillis;
 
+    // spatial/temporal sizing
     final width = newFields[EntryFields.width];
     if (width is int) this.width = width;
     final height = newFields[EntryFields.height];
@@ -475,7 +502,9 @@ class AvesEntry with AvesEntryBase {
     }
 
     await _onVisualFieldChanged(oldMimeType, oldDateModifiedMillis, oldRotationDegrees, oldIsFlipped);
-    metadataChangeNotifier.notify();
+    if (!isDisposed) {
+      metadataChangeNotifier.notify();
+    }
   }
 
   Future<void> refresh({
@@ -521,10 +550,14 @@ class AvesEntry with AvesEntryBase {
     int oldRotationDegrees,
     bool oldIsFlipped,
   ) async {
+    assert(!isDisposed, 'entry used after being disposed, $this');
+
     if ((!MimeTypes.refersToSameType(oldMimeType, mimeType) && !MimeTypes.isVideo(oldMimeType)) || oldDateModifiedMillis != dateModifiedMillis || oldRotationDegrees != rotationDegrees || oldIsFlipped != isFlipped) {
       EntryCache.evict(uri);
       await mediaFetchService.clearDecoders();
-      visualChangeNotifier.notify();
+      if (!isDisposed) {
+        visualChangeNotifier.notify();
+      }
     }
   }
 }

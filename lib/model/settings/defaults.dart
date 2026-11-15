@@ -8,7 +8,7 @@ import 'package:aves/model/settings/enums/miuix_bottom_bar_alignment.dart';
 import 'package:aves/ref/mime_types.dart';
 import 'package:aves/services/media/enums.dart';
 import 'package:aves/widgets/collection/collection_page.dart';
-import 'package:aves/widgets/explorer/explorer_page.dart';
+import 'package:aves/widgets/explorer/page.dart';
 import 'package:aves/widgets/filter_grids/albums_page.dart';
 import 'package:aves/widgets/filter_grids/countries_page.dart';
 import 'package:aves/widgets/filter_grids/tags_page.dart';
@@ -75,6 +75,7 @@ class SettingsDefaults {
   static const showThumbnailHdr = true;
   static const thumbnailLocationIcon = ThumbnailOverlayLocationIcon.none;
   static const thumbnailTagIcon = ThumbnailOverlayTagIcon.none;
+  static const showThumbnailFormat = false;
   static const showThumbnailMotionPhoto = true;
   static const showThumbnailRating = true;
   static const showThumbnailRaw = true;

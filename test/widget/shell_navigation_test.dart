@@ -3,7 +3,7 @@ import 'package:aves/model/filters/favourite.dart';
 import 'package:aves/widgets/collection/collection_page.dart';
 import 'package:aves/widgets/common/behaviour/app_route_observer.dart';
 import 'package:aves/widgets/common/providers/shell_tab_provider.dart';
-import 'package:aves/widgets/explorer/explorer_page.dart';
+import 'package:aves/widgets/explorer/page.dart';
 import 'package:aves/widgets/filter_grids/albums_page.dart';
 import 'package:aves/widgets/filter_grids/tags_page.dart';
 import 'package:aves/widgets/home/home_page.dart';
