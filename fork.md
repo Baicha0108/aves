@@ -91,3 +91,12 @@ APK 和构建产物不进入 Git。
 - APK：`aves-miuix-1.15.10-arm64-v8a-单UI重构-99e5e83f0.apk`，82,555,639 字节，SHA-256 `44001C23FCB83DC34DD91B2E85A63525D93087D4549C00F0AC047EC8DC690BEB`。
 - 包名 `io.github.baicha.aves`、`versionName=1.15.10`、`versionCode=184`、仅 `arm64-v8a`，V2 签名验证通过。
 - 本次未推送 GitHub，未向上游提交 PR。
+
+### 2026-11-16 04:36 (Asia/Shanghai) — GitHub 切换为单 UI 主线
+
+- 旧双 UI 的完整状态备份为分支 `backup/develop-dual-ui-20261116`，提交 `096b2b892`。
+- GitHub 的 `develop` 已从旧实现切换为单 UI 主线，提交 `e4a105c78`。
+- 本地旧 `develop` 重命名为备份分支，原 `single-ui` 重命名为新的 `develop` 并设置远端跟踪。
+- 清理了两个由错误 shell 转义产生的未跟踪临时文件，未删除仓库外其他内容。
+- 当前长期维护分支只有一个：`develop`；备份分支可在确认无需回退后删除。
+- 本次没有改动源码，因此沿用同一源码提交构建的 APK，不重复构建。
