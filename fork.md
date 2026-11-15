@@ -65,3 +65,17 @@ APK 和构建产物不进入 Git。
 - Release arm64 构建通过；`versionName=1.15.8`、`versionCode=182`、包名 `io.github.baicha.aves`，APK 仅包含 `arm64-v8a`，V2 签名验证通过。
 - APK：`aves-miuix-1.15.8-arm64-v8a-文档规则重构-8ad4e145f.apk`，81,749,242 字节，SHA-256 `44D961B2495A2E54A7EF2D73C22A204342069896CEE6B77EAAE311374D16B973`。
 - 本次未主动同步上游，未推送 GitHub。
+
+### 2026-11-16 02:48 (Asia/Shanghai) — 同步上游至 b6a817897
+
+- 上游新增 44 个提交、193 个文件变化；应用版本更新为 `1.15.10+184`。
+- 解决 Release 工作流和 lock 文件冲突。三个 flavor 的依赖均已重新生成，根工作区保持 Libre 配置。
+- 上游已将资源管理器拆分为 `explorer/page.dart` 与 `body.dart`；已删除旧 `explorer_page.dart`，并把分页壳内不重复挂载底栏/抽屉的逻辑迁移到新页面，相关测试引用同步更新。
+- 自动质量检查继续保持手动运行；Release 工作流继续只发布 Libre arm64 APK。
+- 品牌脚本重新执行，119 个本地化/Android 字符串文件保持 `Aves Miuix`；全部 ARB 通过 JSON 校验。
+- 验证：`flutter analyze --no-pub` 无问题；主项目 127 项测试和 vendored `flutter_miuix` 69 项测试全部通过。
+- 构建警告：上游 Firebase 插件仍自行应用 Kotlin Gradle Plugin，当前构建成功，但未来 Flutter 版本将要求迁移。
+- 同步提交：`18995f4`。
+- APK：`aves-miuix-1.15.10-arm64-v8a-同步上游更新-18995f4.apk`，82,555,635 字节，SHA-256 `EBF12D3CD9C1B0424347133A7017E0EF470116EFC7F44AE54C2C1A6A306FC48E`。
+- 包名 `io.github.baicha.aves`、`versionName=1.15.10`、`versionCode=184`、仅 `arm64-v8a`，V2 签名验证通过。
+- 本次未推送 GitHub，未向上游提交 PR。
